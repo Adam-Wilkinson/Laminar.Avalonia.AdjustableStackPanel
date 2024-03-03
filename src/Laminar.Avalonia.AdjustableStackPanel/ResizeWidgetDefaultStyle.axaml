@@ -1,0 +1,150 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel">
+
+	<!-- Design Preview -->
+	<Design.PreviewWith>
+		<Border Margin="3" BorderBrush="Gray" BorderThickness="4" Width="300">
+			<StackPanel Spacing="30" Margin="5">
+				<asp:ResizeWidget Orientation="Vertical"/>
+
+				<asp:ResizeWidget Orientation="Horizontal" HorizontalAlignment="Center" Height="50"/>
+			</StackPanel>
+		</Border>
+	</Design.PreviewWith>
+
+	<!-- Default Resize Widget Template & Styles -->
+	<Style Selector="asp|ResizeWidget">
+		<Setter Property="ClipToBounds" Value="False"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Panel ClipToBounds="False">
+					<Panel Classes="PopoutResizeZone ResizeZoneAfter" ClipToBounds="False" Cursor="Hand" Name="PART_ResizeZoneAfter">
+						<Rectangle Classes="ResizeZone"/>
+						<Path Classes="ArrowAfter"
+							  ClipToBounds="False"
+							  HorizontalAlignment="Center"
+							  VerticalAlignment = "Center"
+							  Stroke="#777"
+							  StrokeThickness="2"/>
+					</Panel>
+					<Panel Classes="PopoutResizeZone ResizeZoneBefore" ClipToBounds="False" Cursor="Hand" Name="PART_ResizeZoneBefore">
+						<Rectangle Classes="ResizeZone"/>
+						<Path Classes="ArrowBefore"
+							  ClipToBounds="False"
+							  HorizontalAlignment="Center"
+							  VerticalAlignment = "Center"
+							  Stroke="#777"
+							  StrokeThickness="2"/>
+					</Panel>
+					<Rectangle Classes="ResizeZone Default" Name="PART_DefaultResizeZone"/>
+				</Panel>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget /template/ Rectangle.ResizeZone">
+		<Setter Property="Margin" Value="4"/>
+		<Setter Property="MinWidth" Value="5"/>
+		<Setter Property="MinHeight" Value="5"/>
+		<Setter Property="Fill" Value="#777"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget /template/ Rectangle.Default">
+		<Setter Property="RenderTransform" Value="Translate(0px,0px)"/>
+		<Setter Property="Opacity" Value="0.6"/>
+		<Setter Property="Transitions">
+			<Setter.Value>
+				<Transitions>
+					<DoubleTransition Property="Opacity" Duration="0:0:0.4"/>
+				</Transitions>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Orientation=Vertical] /template/ Rectangle.Default">
+		<Setter Property="Cursor" Value="SizeNorthSouth"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Orientation=Horizontal] /template/ Rectangle.Default">
+		<Setter Property="Cursor" Value="SizeWestEast"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Mode=Default] /template/ Rectangle.Default">
+		<Setter Property="Opacity" Value="1.0"/>
+	</Style>
+
+	<!--Popout resize zones are transparent and have no translation when nothing is happening-->
+	<Style Selector="asp|ResizeWidget /template/ Panel.PopoutResizeZone">
+		<Setter Property="IsEnabled" Value="False"/>
+		<Setter Property="RenderTransform" Value="Translate(0px,0px)"/>
+		<Setter Property="Opacity" Value="0.0"/>
+		<Setter Property="Transitions">
+			<Setter.Value>
+				<Transitions>
+					<DoubleTransition Property="Opacity" Duration="0:0:0.4"/>
+					<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="ExponentialEaseOut" Delay="0:0:0.2"/>
+				</Transitions>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<!--Resize zones are semi-visible when accessible and fully opaque when hovered over-->
+	<Style Selector="asp|ResizeWidget:ArrowAfter /template/ Panel.ResizeZoneAfter">
+		<Setter Property="IsEnabled" Value="True"/>
+		<Setter Property="Opacity" Value="0.6"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget:ArrowBefore /template/ Panel.ResizeZoneBefore">
+		<Setter Property="IsEnabled" Value="True"/>
+		<Setter Property="Opacity" Value="0.6"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Mode=ArrowAfter] /template/ Panel.ResizeZoneAfter">
+		<Setter Property="IsEnabled" Value="True"/>
+		<Setter Property="Opacity" Value="1.0"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Mode=ArrowBefore] /template/ Panel.ResizeZoneBefore">
+		<Setter Property="IsEnabled" Value="True"/>
+		<Setter Property="Opacity" Value="1.0"/>
+	</Style>
+
+	<!--Setting the offset when the resize zones are expanded depending on the orientation-->
+	<Style Selector="asp|ResizeWidget:ArrowBefore[Orientation=Vertical] /template/ Panel.ResizeZoneBefore">
+		<Setter Property="RenderTransform" Value="Translate(0px,-5px)"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget:ArrowAfter[Orientation=Vertical] /template/ Panel.ResizeZoneAfter">
+		<Setter Property="RenderTransform" Value="Translate(0px,5px)"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget:ArrowBefore[Orientation=Horizontal] /template/ Panel.ResizeZoneBefore">
+		<Setter Property="RenderTransform" Value="Translate(-5px,0px)"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget:ArrowAfter[Orientation=Horizontal] /template/ Panel.ResizeZoneAfter">
+		<Setter Property="RenderTransform" Value="Translate(5px,0px)"/>
+	</Style>
+
+	<!--Setting the path for the arrows depending on the orientation-->
+	<Style Selector="asp|ResizeWidget[Orientation=Vertical] /template/ Path.ArrowBefore">
+		<Setter Property="Data" Value="M 0,0 L 5,5 L 10 0"/>
+		<Setter Property="RenderTransform" Value="translateY(-8px)"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Orientation=Vertical] /template/ Path.ArrowAfter">
+		<Setter Property="Data" Value="M 0,0 L 5,-5 L 10 0"/>
+		<Setter Property="RenderTransform" Value="translateY(11px)"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Orientation=Horizontal] /template/ Path.ArrowBefore">
+		<Setter Property="Data" Value="M 0,0 L 5,5 L 0 10"/>
+		<Setter Property="RenderTransform" Value="translateX(-8px)"/>
+	</Style>
+
+	<Style Selector="asp|ResizeWidget[Orientation=Horizontal] /template/ Path.ArrowAfter">
+		<Setter Property="Data" Value="M 0,0 L -5,5 L 0 10"/>
+		<Setter Property="RenderTransform" Value="translateX(11px)"/>
+	</Style>
+</Styles>

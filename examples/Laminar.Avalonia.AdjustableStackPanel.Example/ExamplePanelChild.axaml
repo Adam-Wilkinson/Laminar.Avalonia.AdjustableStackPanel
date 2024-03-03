@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:local="clr-namespace:Laminar.Avalonia.AdjustableStackPanel.Example;assembly=Laminar.Avalonia.AdjustableStackPanel.Example"
+			 xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel"			 
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Laminar.Avalonia.AdjustableStackPanel.Example.ExamplePanelChild">
+	<UserControl.Resources>
+		<local:InvertOrientationConverter x:Key="InvertOrientationConverter"/>
+	</UserControl.Resources>
+	
+	<StackPanel Orientation="{Binding $parent[asp:AdjustableStackPanel].Orientation, FallbackValue=Horizontal, Converter={StaticResource InvertOrientationConverter}}"
+				VerticalAlignment="Center"
+				HorizontalAlignment="Center">
+		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding InsertExampleBefore}">Add Control Before</Button>
+		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding RemoveSelf}">Remove Control</Button>
+		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding InsertExampleAfter}">Add Control After</Button>
+	</StackPanel>
+</UserControl>

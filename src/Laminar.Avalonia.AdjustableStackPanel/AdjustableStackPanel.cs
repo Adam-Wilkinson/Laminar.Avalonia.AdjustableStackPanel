@@ -1,4 +1,6 @@
-﻿using Avalonia;
+﻿using System.Collections.Specialized;
+using System.Net.Security;
+using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -24,7 +26,7 @@ public class AdjustableStackPanel : StackPanel
     private ResizeWidget? _lastChangedResizer = null;
     private ResizerModifier ResizerModifier = ResizerModifier.None;
     private bool _modeChanging = false;
-    private bool _measureChanging = false;
+    private bool _sizeChangeInvalidatesMeasure = true;
 
     private readonly ResizeWidget _originalResizer = new();
 
@@ -36,12 +38,12 @@ public class AdjustableStackPanel : StackPanel
 
     private static void ResizeWidgetSizeChanged(AvaloniaPropertyChangedEventArgs<double> e)
     {
-        if (e.Sender is not ResizeWidget resizer || resizer.GetVisualParent() is not AdjustableStackPanel adjustableStackPanel || adjustableStackPanel._measureChanging)
+        if (e.Sender is not ResizeWidget resizer || resizer.GetVisualParent() is not AdjustableStackPanel adjustableStackPanel || !adjustableStackPanel._sizeChangeInvalidatesMeasure)
         {
             return;
         }
 
-        adjustableStackPanel._measureChanging = true;
+        adjustableStackPanel._sizeChangeInvalidatesMeasure = false;
         adjustableStackPanel._currentResizeAmount = e.NewValue.GetValueOrDefault() - e.OldValue.GetValueOrDefault();
 
         resizer.Size = e.OldValue.GetValueOrDefault();
@@ -64,8 +66,7 @@ public class AdjustableStackPanel : StackPanel
         _originalResizer.Orientation = Orientation;
         LogicalChildren.Add(_originalResizer);
         VisualChildren.Add(_originalResizer);
-        Children.Events().ItemAdded += ChildAdded;
-        Children.Events().ItemRemoved += ChildRemoved;
+        Children.CollectionChanged += Children_CollectionChanged;
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -186,7 +187,7 @@ public class AdjustableStackPanel : StackPanel
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        _measureChanging = true;
+        _sizeChangeInvalidatesMeasure = false;
         Controls children = Children;
         ResizeWidget? currentHoverResizer = _lastChangedResizer;
         bool isHorizontal = Orientation == Orientation.Horizontal;
@@ -233,37 +234,96 @@ public class AdjustableStackPanel : StackPanel
         }
 
         _currentResizeAmount = null;
-        _measureChanging = false;
+        _sizeChangeInvalidatesMeasure = true;
         return isHorizontal ? new Size(availableSize.Width - spaceToExpandInto, maximumStackDesiredWidth) : new Size(maximumStackDesiredWidth, availableSize.Height - spaceToExpandInto);
     }
 
-    private void ChildAdded(object? sender, ItemAddedEventArgs<Control> childAddedArgs)
+    private void Children_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(childAddedArgs.Item);
-        resizer.Orientation = Orientation;
-        LogicalChildren.Add(resizer);
-        VisualChildren.Add(resizer);
-        for (int i = childAddedArgs.Index; i < Children.Count; i++)
+        if (e.OldItems is not null)
         {
-            ResizerAtIndex(i).ModeAccessibleCheck = (mode) => ModeAccessibleCheck(mode, i - 1);
+            ProcessItemsRemoved(e);
         }
 
-        if (resizer.Size == 0 && Children.Count > childAddedArgs.TotalItemsAdded)
+        if (e.NewItems is not null)
         {
-            _measureChanging = true;
-            resizer.Size = (Orientation == Orientation.Horizontal ? DesiredSize.Width : DesiredSize.Height) / (Children.Count - childAddedArgs.TotalItemsAdded);
+            ProcessItemsAdded(e);
+        }
+
+        int minimumStartingIndex = (e.NewStartingIndex == -1 || e.OldStartingIndex == -1) ? Math.Max(e.OldStartingIndex, e.NewStartingIndex) : Math.Min(e.OldStartingIndex, e.NewStartingIndex);
+        for (int i = 0; i < Children.Count; i++)
+        {
+            int index = i;
+            ResizerAtIndex(i).ModeAccessibleCheck = (mode) => ModeAccessibleCheck(mode, index);
         }
     }
 
-    private void ChildRemoved(object? sender, ItemRemovedEventArgs<Control> childRemovedArgs)
+    private void ProcessItemsAdded(NotifyCollectionChangedEventArgs e)
     {
-        ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(childRemovedArgs.Item);
-        resizer.ModeAccessibleCheck = null;
-        LogicalChildren.Remove(resizer);
-        VisualChildren.Remove(resizer);
-        for (int i = childRemovedArgs.Index; i < Children.Count; i++)
+        _sizeChangeInvalidatesMeasure = false;
+
+        double addedSize = 0;
+        int totalItemsBeforeChange = Children.Count - e.NewItems!.Count;
+        int itemsBeforeAdded = e.NewStartingIndex;
+        int itemsAfterAdded = Children.Count - (e.NewStartingIndex + e.NewItems!.Count);
+        foreach (object item in e.NewItems!)
         {
-            ResizerAtIndex(i).ModeAccessibleCheck = (mode) => ModeAccessibleCheck(mode, i);
+            if (item is not Control addedControl)
+            {
+                continue;
+            }
+
+            ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(addedControl);
+            LogicalChildren.Add(resizer);
+            VisualChildren.Add(resizer);
+
+            if (resizer.Size == 0 && totalItemsBeforeChange > 0)
+            {
+                resizer.Size = (Orientation == Orientation.Horizontal ? DesiredSize.Width : DesiredSize.Height) / totalItemsBeforeChange;
+            }
+
+            addedSize += resizer.Size;
+        }
+
+        if (itemsBeforeAdded > 0)
+        {
+            ResizeMethod.SqueezeExpand.RunMethod(Children.CreateForwardsSlice(e.NewStartingIndex), ControlResizingHarness.GetHarness(Orientation), addedSize * itemsBeforeAdded / totalItemsBeforeChange, 0, 0);
+        }
+        if (itemsAfterAdded > 0)
+        {
+            ResizeMethod.SqueezeExpand.RunMethod(Children.CreateBackwardsSlice(e.NewStartingIndex + e.NewItems!.Count), ControlResizingHarness.GetHarness(Orientation), addedSize * itemsAfterAdded / totalItemsBeforeChange, 0, 0);
+        }
+    }
+
+    private void ProcessItemsRemoved(NotifyCollectionChangedEventArgs e)
+    {
+        _sizeChangeInvalidatesMeasure = false;
+
+        double removedSize = 0;
+        foreach (object item in e.OldItems!)
+        {
+            if (item is not Control removedControl)
+            {
+                continue;
+            }
+
+            ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(removedControl);
+            removedSize += resizer.Size;
+            resizer.ModeAccessibleCheck = null;
+            LogicalChildren.Remove(resizer);
+            VisualChildren.Remove(resizer);
+        }
+
+        int totalItemsAfterRemoval = Children.Count;
+        int itemsBeforeRemoved = e.OldStartingIndex;
+        int itemsAfterRemoved = Children.Count - e.OldStartingIndex;
+        if (itemsBeforeRemoved > 0)
+        {
+            ResizeMethod.SqueezeExpand.RunMethod(Children.CreateBackwardsSlice(e.OldStartingIndex - 1), ControlResizingHarness.GetHarness(Orientation), (removedSize * itemsBeforeRemoved) / totalItemsAfterRemoval, 0, 0);
+        }
+        if (itemsAfterRemoved > 0)
+        {
+            ResizeMethod.SqueezeExpand.RunMethod(Children.CreateForwardsSlice(e.OldStartingIndex + e.OldItems!.Count - 1), ControlResizingHarness.GetHarness(Orientation), (removedSize * itemsAfterRemoved) / totalItemsAfterRemoval, 0, 0);
         }
     }
 

@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Rendering.Composition;
 using Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
 namespace Laminar.Avalonia.AdjustableStackPanel;
@@ -60,6 +61,8 @@ public class ResizeWidget : TemplatedControl
         get => GetValue(OrientationProperty);
         set => SetValue(OrientationProperty, value);
     }
+
+    public RenderOffsetAnimator OffsetAnimator { get; } = new();
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -149,6 +152,7 @@ public class ResizeWidget : TemplatedControl
 
         ResizeWidget newResizer = new();
         SetResizeWidget(control, newResizer);
+
         return newResizer;
     }
 

@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 
 namespace Laminar.Avalonia.AdjustableStackPanel.Example;
+
 public partial class ExamplePanelChild : UserControl
 {
     public ExamplePanelChild()
@@ -29,13 +30,5 @@ public partial class ExamplePanelChild : UserControl
         panel.Children.Insert(panel.Children.IndexOf(this) + 1, new ExamplePanelChild());
     }
 
-    public void RemoveSelf()
-    {
-        if (Parent is not AdjustableStackPanel panel)
-        {
-            return;
-        }
-
-        panel.Children.Remove(this);
-    }
+    public void RemoveSelf() => (Parent as AdjustableStackPanel)?.Children.Remove(this);
 }

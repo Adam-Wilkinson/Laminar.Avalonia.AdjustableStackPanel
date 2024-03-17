@@ -13,6 +13,7 @@ public enum ResizeFlags
     None                         = 0,
     CanConsumeSpaceAfterStack    = 1 << 0,
     CanConsumeSpaceBeforeStack   = 1 << 1,
+    HasTransition                = 1 << 2,
 }
 
 public delegate double ResizeAmountTransformation(double resizeAmount, double originalResizeSpace, double currentResizeSpace, double totalResizeSpace);

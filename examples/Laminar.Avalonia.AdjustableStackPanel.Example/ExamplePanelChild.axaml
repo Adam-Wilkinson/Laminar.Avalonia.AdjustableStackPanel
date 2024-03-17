@@ -5,11 +5,11 @@
 			 xmlns:local="clr-namespace:Laminar.Avalonia.AdjustableStackPanel.Example;assembly=Laminar.Avalonia.AdjustableStackPanel.Example"
 			 xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel"			 
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Laminar.Avalonia.AdjustableStackPanel.Example.ExamplePanelChild">
+             x:Class="Laminar.Avalonia.AdjustableStackPanel.Example.ExamplePanelChild"
+			 BorderBrush="Red" BorderThickness="10">
 	<UserControl.Resources>
 		<local:InvertOrientationConverter x:Key="InvertOrientationConverter"/>
 	</UserControl.Resources>
-	
 	<StackPanel Orientation="{Binding $parent[asp:AdjustableStackPanel].Orientation, FallbackValue=Horizontal, Converter={StaticResource InvertOrientationConverter}}"
 				VerticalAlignment="Center"
 				HorizontalAlignment="Center">

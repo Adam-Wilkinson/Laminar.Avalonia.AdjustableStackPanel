@@ -1,14 +1,10 @@
 ﻿using System.Collections.Specialized;
-using System.Runtime.Intrinsics.Arm;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
-using Avalonia.Platform;
 using Avalonia.Reactive;
-using Avalonia.Rendering.Composition;
-using Avalonia.Rendering.Composition.Animations;
 using Avalonia.VisualTree;
 using Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
@@ -76,6 +72,7 @@ public class AdjustableStackPanel : StackPanel
         _originalResizer.Orientation = Orientation;
         LogicalChildren.Add(_originalResizer);
         VisualChildren.Add(_originalResizer);
+        _originalResizer.OffsetAnimator.BindTransitionProperties(TransitionDurationProperty, TransitionEasingProperty, this);
         Children.CollectionChanged += Children_CollectionChanged;
     }
 
@@ -140,12 +137,12 @@ public class AdjustableStackPanel : StackPanel
                 _originalResizer.IsVisible = true;
                 currentDepth += _originalResizer.DesiredSize.Height;
                 _originalResizer.Arrange(new Rect(0, 0, finalSize.Width, _originalResizer.DesiredSize.Height));
-                currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
             }
             else
             {
                 _originalResizer.IsVisible = false;
             }
+            currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
 
             for (int i = 0, count = children.Count; i < count; i++)
             {
@@ -182,12 +179,12 @@ public class AdjustableStackPanel : StackPanel
                 _originalResizer.IsVisible = true;
                 currentDepth += _originalResizer.DesiredSize.Width;
                 _originalResizer.Arrange(new Rect(0, 0, finalSize.Height, _originalResizer.DesiredSize.Width));
-                currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
             }
             else
             {
                 _originalResizer.IsVisible = false;
             }
+            currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
 
             for (int i = 0, count = children.Count; i < count; i++)
             {
@@ -235,6 +232,7 @@ public class AdjustableStackPanel : StackPanel
             _originalResizer.Measure(availableSize);
             spaceToExpandInto -= isHorizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height;
         }
+        spaceToExpandInto -= _originalResizer.OffsetAnimator.PositionOffsetAfter;
 
         for (int i = 0, count = children.Count; i < count; ++i)
         {
@@ -319,7 +317,6 @@ public class AdjustableStackPanel : StackPanel
                 resizer.Size = (Orientation == Orientation.Horizontal ? DesiredSize.Width : DesiredSize.Height) / Math.Max(totalItemsBeforeChange, 1);
                 resizer.OffsetAnimator.ChangeSizeOffset(-resizer.Size);
             }
-
 
             addedSize += resizer.Size + resizer.OffsetAnimator.SizeOffset + (Orientation == Orientation.Horizontal ? resizer.DesiredSize.Width : resizer.DesiredSize.Height);
         }

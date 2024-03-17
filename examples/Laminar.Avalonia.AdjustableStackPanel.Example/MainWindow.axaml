@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Laminar.Avalonia.AdjustableStackPanel.Example.MainWindow"
         Title="Example Project">
-	<asp:AdjustableStackPanel TransitionDuration="0:0:0.3" TransitionEasing="ExponentialEaseOut" HorizontalAlignment="Stretch" Orientation="Horizontal">
+	<asp:AdjustableStackPanel TransitionDuration="0:0:5" TransitionEasing="ExponentialEaseOut" HorizontalAlignment="Stretch" Orientation="Horizontal">
 		<local:ExamplePanelChild/>
 	</asp:AdjustableStackPanel>
 </Window>

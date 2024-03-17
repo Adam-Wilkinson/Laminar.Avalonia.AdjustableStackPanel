@@ -34,11 +34,9 @@ internal class ControlResizingHarness : IResizingHarness<Control>
         ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(resizable);
         if (Animated)
         {
-            resizer.OffsetAnimator.DisableTransitions();
-            resizer.OffsetAnimator.SizeOffset = resizer.Size - size;
-            resizer.OffsetAnimator.EnableTransitions();
-            resizer.OffsetAnimator.SizeOffset = 0;
+            resizer.OffsetAnimator.ChangeSizeOffset(resizer.Size - size);
         }
+
         resizer.Size = size;
     }
 }

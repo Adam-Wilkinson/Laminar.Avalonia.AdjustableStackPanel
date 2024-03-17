@@ -137,9 +137,14 @@ public class AdjustableStackPanel : StackPanel
         {
             if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceBeforeStack))
             {
+                _originalResizer.IsVisible = true;
                 currentDepth += _originalResizer.DesiredSize.Height;
                 _originalResizer.Arrange(new Rect(0, 0, finalSize.Width, _originalResizer.DesiredSize.Height));
                 currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
+            }
+            else
+            {
+                _originalResizer.IsVisible = false;
             }
 
             for (int i = 0, count = children.Count; i < count; i++)
@@ -152,12 +157,17 @@ public class AdjustableStackPanel : StackPanel
                 }
 
                 ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
-                double controlSize = currentResizer.Size;
+                double controlSize = Math.Max(0, currentResizer.Size + currentResizer.OffsetAnimator.SizeOffset);
                 child.Arrange(new Rect(0, currentDepth, finalSize.Width, controlSize));
                 currentDepth += controlSize;
 
-                if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceAfterStack) || i != count - 1)
+                if (i == count - 1 && !CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceAfterStack))
                 {
+                    currentResizer.IsVisible = false;
+                }
+                else
+                {
+                    currentResizer.IsVisible = child.IsVisible;
                     currentResizer.Arrange(new Rect(0, currentDepth, finalSize.Width, currentResizer.DesiredSize.Height));
                     currentDepth += currentResizer.DesiredSize.Height + currentResizer.OffsetAnimator.PositionOffsetAfter;
                 }
@@ -169,9 +179,14 @@ public class AdjustableStackPanel : StackPanel
         {
             if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceBeforeStack))
             {
+                _originalResizer.IsVisible = true;
                 currentDepth += _originalResizer.DesiredSize.Width;
                 _originalResizer.Arrange(new Rect(0, 0, finalSize.Height, _originalResizer.DesiredSize.Width));
                 currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
+            }
+            else
+            {
+                _originalResizer.IsVisible = false;
             }
 
             for (int i = 0, count = children.Count; i < count; i++)
@@ -188,8 +203,13 @@ public class AdjustableStackPanel : StackPanel
                 child.Arrange(new Rect(currentDepth, 0, controlSize, finalSize.Height));
                 currentDepth += controlSize;
 
-                if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceAfterStack) || i != count - 1)
+                if (i == count - 1 && !CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceAfterStack))
                 {
+                    currentResizer.IsVisible = false;
+                }
+                else
+                {
+                    currentResizer.IsVisible = child.IsVisible;
                     currentResizer.Arrange(new Rect(currentDepth, 0, currentResizer.DesiredSize.Width, finalSize.Height));
                     currentDepth += currentResizer.DesiredSize.Width + currentResizer.OffsetAnimator.PositionOffsetAfter;
                 }

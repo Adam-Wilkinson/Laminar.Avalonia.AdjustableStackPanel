@@ -128,92 +128,26 @@ public class AdjustableStackPanel : StackPanel
     protected override Size ArrangeOverride(Size finalSize)
     {
         Controls children = Children;
-        double currentDepth = 0.0;
+        double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceBeforeStack));
 
-        if (Orientation == Orientation.Vertical)
+        for (int i = 0, count = children.Count; i < count; i++)
         {
-            if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceBeforeStack))
+            Control child = children[i];
+
+            if (child is null || !child.IsVisible)
             {
-                _originalResizer.IsVisible = true;
-                currentDepth += _originalResizer.DesiredSize.Height;
-                _originalResizer.Arrange(new Rect(0, 0, finalSize.Width, _originalResizer.DesiredSize.Height));
-            }
-            else
-            {
-                _originalResizer.IsVisible = false;
-            }
-            currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
-
-            for (int i = 0, count = children.Count; i < count; i++)
-            {
-                Control child = children[i];
-
-                if (child is null || !child.IsVisible)
-                {
-                    continue;
-                }
-
-                ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
-                double controlSize = Math.Max(0, currentResizer.Size + currentResizer.OffsetAnimator.SizeOffset);
-                child.Arrange(new Rect(0, currentDepth, finalSize.Width, controlSize));
-                currentDepth += controlSize;
-
-                if (i == count - 1 && !CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceAfterStack))
-                {
-                    currentResizer.IsVisible = false;
-                }
-                else
-                {
-                    currentResizer.IsVisible = child.IsVisible;
-                    currentResizer.Arrange(new Rect(0, currentDepth, finalSize.Width, currentResizer.DesiredSize.Height));
-                    currentDepth += currentResizer.DesiredSize.Height + currentResizer.OffsetAnimator.PositionOffsetAfter;
-                }
+                continue;
             }
 
-            return finalSize;
+            ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
+            double controlSize = Math.Max(0, currentResizer.Size + currentResizer.OffsetAnimator.SizeOffset);
+            child.Arrange(OrientedArrangeRect(currentDepth, controlSize, finalSize));
+            currentDepth += controlSize;
+
+            currentDepth += ArrangeResizer(currentResizer, currentDepth, finalSize, i < count - 1 || CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceAfterStack));
         }
-        else
-        {
-            if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceBeforeStack))
-            {
-                _originalResizer.IsVisible = true;
-                currentDepth += _originalResizer.DesiredSize.Width;
-                _originalResizer.Arrange(new Rect(0, 0, finalSize.Height, _originalResizer.DesiredSize.Width));
-            }
-            else
-            {
-                _originalResizer.IsVisible = false;
-            }
-            currentDepth += _originalResizer.OffsetAnimator.PositionOffsetAfter;
 
-            for (int i = 0, count = children.Count; i < count; i++)
-            {
-                Control child = children[i];
-
-                if (child is null || !child.IsVisible)
-                {
-                    continue;
-                }
-
-                ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
-                double controlSize = Math.Max(0, currentResizer.Size + currentResizer.OffsetAnimator.SizeOffset);
-                child.Arrange(new Rect(currentDepth, 0, controlSize, finalSize.Height));
-                currentDepth += controlSize;
-
-                if (i == count - 1 && !CurrentStackResizeFlags().HasFlag(ResizeFlags.CanConsumeSpaceAfterStack))
-                {
-                    currentResizer.IsVisible = false;
-                }
-                else
-                {
-                    currentResizer.IsVisible = child.IsVisible;
-                    currentResizer.Arrange(new Rect(currentDepth, 0, currentResizer.DesiredSize.Width, finalSize.Height));
-                    currentDepth += currentResizer.DesiredSize.Width + currentResizer.OffsetAnimator.PositionOffsetAfter;
-                }
-            }
-
-            return finalSize;
-        }
+        return finalSize;
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -308,6 +242,7 @@ public class AdjustableStackPanel : StackPanel
             }
 
             ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(addedControl);
+            resizer.Orientation = Orientation;
             LogicalChildren.Add(resizer);
             VisualChildren.Add(resizer);
             resizer.OffsetAnimator.BindTransitionProperties(TransitionDurationProperty, TransitionEasingProperty, this);
@@ -387,5 +322,27 @@ public class AdjustableStackPanel : StackPanel
         }
 
         return ResizeWidget.GetOrCreateResizer(Children[index]);
+    }
+
+    private double ArrangeResizer(ResizeWidget resizer, double currentDepth, Size finalSize, bool isActive = true)
+    {
+        double resizerDepth = 0;
+        if (isActive)
+        {
+            resizer.IsVisible = true;
+            resizerDepth = Orientation == Orientation.Horizontal ? resizer.DesiredSize.Width : resizer.DesiredSize.Height;
+            resizer.Arrange(OrientedArrangeRect(currentDepth, resizerDepth, finalSize));
+        }
+        else
+        {
+            resizer.IsVisible = false;
+        }
+
+        return resizerDepth + resizer.OffsetAnimator.PositionOffsetAfter;
+    }
+
+    private Rect OrientedArrangeRect(double depthStart, double depthSize, Size finalSize)
+    {
+        return Orientation == Orientation.Horizontal ? new Rect(depthStart, 0, depthSize, finalSize.Height) : new Rect(0, depthStart, finalSize.Width, depthSize);
     }
 }

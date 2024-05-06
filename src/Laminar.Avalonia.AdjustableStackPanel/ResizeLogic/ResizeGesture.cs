@@ -11,8 +11,8 @@ public enum ResizerModifier
 public enum ResizeFlags
 {
     None                         = 0,
-    CanConsumeSpaceAfterStack    = 1 << 0,
-    CanConsumeSpaceBeforeStack   = 1 << 1,
+    DisableResizeAfter    = 1 << 0,
+    DisableResizeBefore   = 1 << 1,
     HasTransition                = 1 << 2,
 }
 
@@ -20,8 +20,8 @@ public delegate double ResizeAmountTransformation(double resizeAmount, double or
 
 public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, ResizerModifier Modifier, ResizeFlags Flags = ResizeFlags.None)
 {
-    private static readonly ResizeAmountTransformation MaintainResizeAmount = (x, _, _, _) => x;
-    private static readonly ResizeAmountTransformation NegateResizeAmount = (x, _, _, _) => -x;
+    public static readonly ResizeAmountTransformation MaintainResizeAmount = (x, _, _, _) => x;
+    public static readonly ResizeAmountTransformation NegateResizeAmount = (x, _, _, _) => -x;
 
     private static readonly Dictionary<(ResizerMode mode, ResizerModifier modifier), ResizeGesture> GestureDictionary = [];
 
@@ -33,7 +33,7 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
         {
             Mode = ResizerMode.Default,
             Modifier = ResizerModifier.None,
-            Flags = ResizeFlags.CanConsumeSpaceAfterStack | ResizeFlags.CanConsumeSpaceBeforeStack,
+            Flags = ResizeFlags.DisableResizeAfter | ResizeFlags.DisableResizeBefore,
             Resizes =
             [
                 new(0, MaintainResizeAmount, ResizerMode.Default),
@@ -66,7 +66,7 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
         {
             Mode = ResizerMode.ArrowBefore,
             Modifier = ResizerModifier.None,
-            Flags = ResizeFlags.CanConsumeSpaceAfterStack,
+            Flags = ResizeFlags.DisableResizeAfter,
             Resizes =
             [
                 new(0, MaintainResizeAmount, ResizerMode.ArrowBefore), 
@@ -99,7 +99,7 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
         {
             Mode = ResizerMode.ArrowAfter,
             Modifier = ResizerModifier.None,
-            Flags = ResizeFlags.CanConsumeSpaceBeforeStack,
+            Flags = ResizeFlags.DisableResizeBefore,
             Resizes =
             [
                 new(0, MaintainResizeAmount, ResizerMode.ArrowAfter), 
@@ -164,14 +164,14 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
         }
     }
 
-    public readonly double Execute<T>(IList<T> resizeElements, int activeResizerIndex, double resizeAmount, Span<double> spaceBeforeResizers, double spaceToExpandInto, IResizingHarness<T> harness, ResizeFlags currentResizeFlags)
+    public readonly double Execute<T>(IList<T> resizeElements, int activeResizerIndex, double resizeAmount, Span<double> spaceBeforeResizers, IResizingHarness<T> harness, ResizeFlags currentResizeFlags)
     {
         double changeInStackSize = 0;
         foreach ((int indexOfCurrentResize, Resize resize) in AccessibleResizes(resizeElements, activeResizerIndex))
         {
-            changeInStackSize += resize.Execute(resizeElements, harness, resizeAmount, spaceToExpandInto, indexOfCurrentResize, activeResizerIndex, spaceBeforeResizers, Flags & currentResizeFlags);
-            spaceToExpandInto -= changeInStackSize;
+            changeInStackSize += resize.Execute(resizeElements, harness, resizeAmount, indexOfCurrentResize, activeResizerIndex, spaceBeforeResizers, Flags & currentResizeFlags);
         }
+
         return changeInStackSize;
     }
 

@@ -5,17 +5,16 @@ public enum ResizeMethod
     None,
     Cascade,
     SqueezeExpand,
-    ChangeStackSize,
 }
 
 public static class ResizeMethodExtensions
 {
-    public static double RunMethods<T>(this Span<ResizeMethod> methods, ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace, double spaceToExpandInto)
+    public static double RunMethods<T>(this Span<ResizeMethod> methods, ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace)
     {
         double successfulResizeAmount = 0;
         foreach (ResizeMethod method in methods)
         {
-            successfulResizeAmount += method.RunMethod(resizeElements, resizingHarness, resizeAmount - successfulResizeAmount, totalResizeSpace, spaceToExpandInto);
+            successfulResizeAmount += method.RunMethod(resizeElements, resizingHarness, resizeAmount - successfulResizeAmount, totalResizeSpace);
 
             if (Math.Abs(successfulResizeAmount) >= Math.Abs(resizeAmount))
             {
@@ -25,18 +24,12 @@ public static class ResizeMethodExtensions
         return successfulResizeAmount;
     }
 
-    public static double RunMethod<T>(this ResizeMethod method, ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace, double spaceToExpandInto) => method switch
+    public static double RunMethod<T>(this ResizeMethod method, ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace) => method switch
     {
         ResizeMethod.SqueezeExpand => RunSqueezeExpand(resizeElements, resizingHarness, resizeAmount, totalResizeSpace),
-        ResizeMethod.Cascade => RunCascade(resizeElements, resizingHarness, resizeAmount, spaceToExpandInto),
-        ResizeMethod.ChangeStackSize => RunChangeStackSize(resizeElements, resizingHarness, resizeAmount, spaceToExpandInto),
+        ResizeMethod.Cascade => RunCascade(resizeElements, resizingHarness, resizeAmount),
         _ => 0.0,
     };
-
-    private static double RunChangeStackSize<T>(ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double spaceToExpandInto)
-    {
-        return Math.Max(resizeAmount, -spaceToExpandInto);
-    }
 
     private static double RunSqueezeExpand<T>(ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace)
     {
@@ -66,7 +59,7 @@ public static class ResizeMethodExtensions
         return -sizeReductionAmount;
     }
 
-    private static double RunCascade<T>(ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double spaceToExpandInto)
+    private static double RunCascade<T>(ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount)
     {
         if (resizeAmount == 0) { return 0; }
 

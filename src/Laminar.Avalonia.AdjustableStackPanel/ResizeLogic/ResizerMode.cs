@@ -26,7 +26,7 @@ public static class ResizerModeExtensions
     {
         ResizerMode.Default => true,
         ResizerMode.ArrowBefore => indexInParent > -1 && !(indexInParent == 0 && !currentFlags.HasFlag(ResizeFlags.DisableResizeBefore)),
-        ResizerMode.ArrowAfter => indexInParent < totalChildren && !(indexInParent == totalChildren - 2 && !currentFlags.HasFlag(ResizeFlags.DisableResizeAfter)),
+        ResizerMode.ArrowAfter => indexInParent <= totalChildren - 2 && !(indexInParent == totalChildren - 2 && !currentFlags.HasFlag(ResizeFlags.DisableResizeAfter)),
         _ => false
     };
 }

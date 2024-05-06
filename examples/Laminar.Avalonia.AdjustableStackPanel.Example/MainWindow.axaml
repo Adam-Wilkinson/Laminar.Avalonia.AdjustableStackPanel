@@ -9,7 +9,11 @@
         Title="Example Project">
 	<StackPanel Orientation="Horizontal">
 		<TextBlock>Test</TextBlock>
-		<asp:AdjustableStackPanel TransitionDuration="0:0:0.3" TransitionEasing="QuadraticEaseOut" HorizontalAlignment="Stretch" Orientation="Vertical">
+		<asp:AdjustableStackPanel TransitionDuration="0:0:0.3" 
+								  TransitionEasing="QuadraticEaseOut"
+								  VerticalAlignment="Stretch"
+								  HorizontalAlignment="Left" 
+								  Orientation="Horizontal">
 			<local:ExamplePanelChild/>
 		</asp:AdjustableStackPanel>
 	</StackPanel>

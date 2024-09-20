@@ -219,7 +219,6 @@ public class AdjustableStackPanel : StackPanel
 
         if (_currentResizeAmount.HasValue && _lastChangedResizerIndex.HasValue && ResizeGesture.TryGetGesture(currentHoverResizer?.Mode, _resizerModifier, out ResizeGesture gesture))
         {
-            Debug.WriteLine(CurrentStackResizeFlags());
             totalStackHeight += gesture.Execute(Children, _lastChangedResizerIndex.Value, _currentResizeAmount.Value, resizableSpaceBeforeControls, ControlResizingHarness.GetHarness(Orientation), CurrentStackResizeFlags());
         }
 

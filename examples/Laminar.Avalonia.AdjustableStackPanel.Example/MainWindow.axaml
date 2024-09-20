@@ -8,21 +8,47 @@
         x:Class="Laminar.Avalonia.AdjustableStackPanel.Example.MainWindow"
         Title="Example Project">
 	<DockPanel>
-		<!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-			<StackPanel Width="70" Margin="10" Orientation="Vertical">
-				<TextBlock>Horizontal Alignment</TextBlock>
+		<Border Background="{DynamicResource SettingsMenuBrush}" Name="SettingsMenu" DockPanel.Dock="Left">
+			<StackPanel Margin="15" Orientation="Vertical">
+				<TextBlock Margin="0,0,0,8">Horizontal Alignment:</TextBlock>
 				<ComboBox Name="horizontalAlignmentSelector"
+						  SelectedIndex="0"
 						  SelectedItem="{Binding #AdjustableStackPanel.HorizontalAlignment, Mode=TwoWay}"/>
+				<TextBlock Margin="0,15,0,8">Vertical Alignment:</TextBlock>
+				<ComboBox Name="verticalAlignmentSelector"
+						  SelectedItem="{Binding #AdjustableStackPanel.VerticalAlignment, Mode=TwoWay}"
+						  SelectedIndex="0"/>
+				<StackPanel Margin="0,15,0,-5" Orientation="Horizontal">
+					<TextBlock Margin="0,0,5,0">Animation Duration:</TextBlock>
+					<TextBlock Text="{Binding #animationDurationSelector.Value}"/>
+					<TextBlock Text="ms"/>
+				</StackPanel>
+				<Slider Name="animationDurationSelector"
+					    Minimum="0" Maximum="5000" SmallChange="500" 
+						TickFrequency="500" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
+						ValueChanged="AnimationDurationChanged"/>
 			</StackPanel>
-			<Rectangle Fill="Black" VerticalAlignment="Stretch" Width="6"/>
-		</StackPanel>-->
+		</Border>
 		<asp:AdjustableStackPanel Name="AdjustableStackPanel"
 								  TransitionDuration="0:0:0.3" 
 								  TransitionEasing="QuadraticEaseOut"
-								  VerticalAlignment="Bottom"
-								  HorizontalAlignment="Right" 
+								  VerticalAlignment="Top"
+								  HorizontalAlignment="Stretch" 
 								  Orientation="Vertical">
 			<local:ExamplePanelChild/>
 		</asp:AdjustableStackPanel>
 	</DockPanel>
+
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.ThemeDictionaries>
+				<ResourceDictionary x:Key='Light'>
+					<SolidColorBrush x:Key='SettingsMenuBrush'>#DDD</SolidColorBrush>
+				</ResourceDictionary>
+				<ResourceDictionary x:Key='Dark'>
+					<SolidColorBrush x:Key='SettingsMenuBrush'>#333</SolidColorBrush>
+				</ResourceDictionary>
+			</ResourceDictionary.ThemeDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
 </Window>

@@ -1,5 +1,9 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Diagnostics;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
+using Avalonia.Themes.Fluent;
 
 namespace Laminar.Avalonia.AdjustableStackPanel.Example;
 
@@ -8,7 +12,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        //horizontalAlignmentSelector.ItemsSource = (HorizontalAlignment[])typeof(HorizontalAlignment).GetEnumValues();
-        //horizontalAlignmentSelector.SelectedIndex = 0;
+        horizontalAlignmentSelector.ItemsSource = (HorizontalAlignment[])typeof(HorizontalAlignment).GetEnumValues();
+        horizontalAlignmentSelector.SelectedItem = AdjustableStackPanel.HorizontalAlignment;
+
+        verticalAlignmentSelector.ItemsSource = (VerticalAlignment[])typeof(VerticalAlignment).GetEnumValues();
+        verticalAlignmentSelector.SelectedItem = AdjustableStackPanel.VerticalAlignment;
+
+        animationDurationSelector.Value = AdjustableStackPanel.TransitionDuration.TotalMilliseconds;
+    }
+
+    private void AnimationDurationChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        AdjustableStackPanel.TransitionDuration = TimeSpan.FromMilliseconds(e.NewValue);
     }
 }

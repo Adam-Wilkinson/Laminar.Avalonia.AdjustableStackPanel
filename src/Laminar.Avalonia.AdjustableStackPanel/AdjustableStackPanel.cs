@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -68,7 +69,7 @@ public class AdjustableStackPanel : StackPanel
 
     public AdjustableStackPanel()
     {
-        _originalResizer.Orientation = Orientation;
+        _originalResizer[!ResizeWidget.OrientationProperty] = this[!OrientationProperty];
         LogicalChildren.Add(_originalResizer);
         VisualChildren.Add(_originalResizer);
         _originalResizer.OffsetAnimator.BindTransitionProperties(TransitionDurationProperty, TransitionEasingProperty, this);
@@ -218,6 +219,7 @@ public class AdjustableStackPanel : StackPanel
 
         if (_currentResizeAmount.HasValue && _lastChangedResizerIndex.HasValue && ResizeGesture.TryGetGesture(currentHoverResizer?.Mode, _resizerModifier, out ResizeGesture gesture))
         {
+            Debug.WriteLine(CurrentStackResizeFlags());
             totalStackHeight += gesture.Execute(Children, _lastChangedResizerIndex.Value, _currentResizeAmount.Value, resizableSpaceBeforeControls, ControlResizingHarness.GetHarness(Orientation), CurrentStackResizeFlags());
         }
 
@@ -255,7 +257,7 @@ public class AdjustableStackPanel : StackPanel
             }
 
             ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(addedControl);
-            resizer.Orientation = Orientation;
+            resizer[!ResizeWidget.OrientationProperty] = this[!OrientationProperty];
             LogicalChildren.Add(resizer);
             VisualChildren.Add(resizer);
             resizer.OffsetAnimator.BindTransitionProperties(TransitionDurationProperty, TransitionEasingProperty, this);

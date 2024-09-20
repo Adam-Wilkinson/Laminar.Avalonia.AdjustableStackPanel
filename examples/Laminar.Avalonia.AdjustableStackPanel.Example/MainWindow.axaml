@@ -7,14 +7,22 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Laminar.Avalonia.AdjustableStackPanel.Example.MainWindow"
         Title="Example Project">
-	<StackPanel Orientation="Horizontal">
-		<TextBlock>Test</TextBlock>
-		<asp:AdjustableStackPanel TransitionDuration="0:0:0.3" 
+	<DockPanel>
+		<!--<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+			<StackPanel Width="70" Margin="10" Orientation="Vertical">
+				<TextBlock>Horizontal Alignment</TextBlock>
+				<ComboBox Name="horizontalAlignmentSelector"
+						  SelectedItem="{Binding #AdjustableStackPanel.HorizontalAlignment, Mode=TwoWay}"/>
+			</StackPanel>
+			<Rectangle Fill="Black" VerticalAlignment="Stretch" Width="6"/>
+		</StackPanel>-->
+		<asp:AdjustableStackPanel Name="AdjustableStackPanel"
+								  TransitionDuration="0:0:0.3" 
 								  TransitionEasing="QuadraticEaseOut"
-								  VerticalAlignment="Stretch"
-								  HorizontalAlignment="Left" 
-								  Orientation="Horizontal">
+								  VerticalAlignment="Bottom"
+								  HorizontalAlignment="Right" 
+								  Orientation="Vertical">
 			<local:ExamplePanelChild/>
 		</asp:AdjustableStackPanel>
-	</StackPanel>
+	</DockPanel>
 </Window>

@@ -1,4 +1,6 @@
-﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
+﻿using System.Diagnostics;
+
+namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
 public readonly record struct Resize(int IndexOffset, ResizeAmountTransformation ResizeAmountTransformation, ResizerMode ResizerMode)
 {
@@ -42,6 +44,17 @@ public readonly record struct Resize(int IndexOffset, ResizeAmountTransformation
             }
         }
 
-        return flags.HasFlag(ResizeFlags.DisableResizeAfter) != flags.HasFlag(ResizeFlags.DisableResizeBefore) ? resizerPositionChange : 0.0;
+        if (flags.HasFlag(ResizeFlags.DisableResizeAfter))
+        {
+            return resizerPositionChange;
+        }
+        else if (flags.HasFlag(ResizeFlags.DisableResizeBefore))
+        { 
+            return -resizerPositionChange;
+        }
+        else
+        {
+            return 0.0;
+        }
     }
 }

@@ -62,7 +62,7 @@ public class RenderOffsetAnimator : Animatable
     public void ChangePositionOffset(double offsetChange)
     {
         Transitions ??= [];
-        // PositionOffsetAfter = PositionOffsetAfter;
+        //PositionOffsetAfter = PositionOffsetAfter;
         Transitions!.Remove(_positionTransition);
         PositionOffsetAfter += offsetChange;
         Transitions!.Add(_positionTransition);
@@ -72,7 +72,7 @@ public class RenderOffsetAnimator : Animatable
     public void ChangeSizeOffset(double sizeChange)
     {
         Transitions ??= [];
-        // SizeOffset = SizeOffset;
+        //SizeOffset = SizeOffset;
         Transitions!.Remove(_sizeTransition);
         SizeOffset += sizeChange;
         Transitions!.Add(_sizeTransition);
@@ -81,6 +81,8 @@ public class RenderOffsetAnimator : Animatable
 
     public void UpdateTransitions()
     {
+        Transitions?.Remove(_positionTransition);
+        Transitions?.Remove(_sizeTransition);
         _positionTransition = new() { Property = PositionOffsetProperty, Duration = _duration, Easing = _easing };
         _sizeTransition = new() { Property = SizeOffsetProperty, Duration = _duration, Easing = _easing };
     }

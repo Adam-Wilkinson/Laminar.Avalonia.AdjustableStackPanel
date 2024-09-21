@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:local="clr-namespace:Laminar.Avalonia.AdjustableStackPanel.Example;assembly=Laminar.Avalonia.AdjustableStackPanel.Example"
 			 xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel"
-			 MinWidth="70" MinHeight="70"
+			 MinHeight="70"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Laminar.Avalonia.AdjustableStackPanel.Example.ExamplePanelChild">
 	<UserControl.Resources>

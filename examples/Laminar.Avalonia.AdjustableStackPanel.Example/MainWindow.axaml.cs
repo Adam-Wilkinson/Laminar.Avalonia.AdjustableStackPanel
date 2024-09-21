@@ -18,6 +18,9 @@ public partial class MainWindow : Window
         verticalAlignmentSelector.ItemsSource = (VerticalAlignment[])typeof(VerticalAlignment).GetEnumValues();
         verticalAlignmentSelector.SelectedItem = AdjustableStackPanel.VerticalAlignment;
 
+        orientationSelector.ItemsSource = (Orientation[])typeof(Orientation).GetEnumValues();
+        orientationSelector.SelectedItem = AdjustableStackPanel.Orientation;
+
         animationDurationSelector.Value = AdjustableStackPanel.TransitionDuration.TotalMilliseconds;
     }
 

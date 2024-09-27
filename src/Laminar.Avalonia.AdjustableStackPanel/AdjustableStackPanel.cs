@@ -1,5 +1,4 @@
 ﻿using System.Collections.Specialized;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -210,7 +209,7 @@ public class AdjustableStackPanel : StackPanel
             }
 
             resizer.Size = Math.Max(resizer.Size, childDesiredSizeOriented.Height);
-            double resizerDictatedControlSize = resizer.Size + resizer.OffsetAnimator.SizeOffset;
+            double resizerDictatedControlSize = resizer.Size;
             totalStackHeight += (IsInStretchMode() ? childDesiredSizeOriented.Height : resizerDictatedControlSize) + resizerDesiredSizeOriented.Height + resizer.OffsetAnimator.SizeOffset + resizer.OffsetAnimator.PositionOffsetAfter;
             maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, childDesiredSizeOriented.Width);
 

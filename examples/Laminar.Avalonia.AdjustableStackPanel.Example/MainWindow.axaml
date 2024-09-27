@@ -34,9 +34,9 @@
 			</StackPanel>
 		</Border>
 		<asp:AdjustableStackPanel Name="AdjustableStackPanel"
-								  TransitionDuration="0:0:0.3" 
-								  TransitionEasing="ExponentialEaseOut"
-								  VerticalAlignment="Top"
+								  TransitionDuration="0:0:0.5" 
+								  TransitionEasing="QuinticEaseOut"
+								  VerticalAlignment="Stretch"
 								  HorizontalAlignment="Stretch" 
 								  Orientation="Vertical">
 			<local:ExamplePanelChild/>

@@ -41,110 +41,110 @@
 				</Panel>
 			</ControlTemplate>
 		</Setter>
-	</Style>
 
-	<Style Selector="asp|ResizeWidget /template/ Rectangle.ResizeZone">
-		<Setter Property="Margin" Value="4"/>
-		<Setter Property="MinWidth" Value="5"/>
-		<Setter Property="MinHeight" Value="5"/>
-		<Setter Property="Fill" Value="#777"/>
-	</Style>
+		<Style Selector="^ /template/ Rectangle.ResizeZone">
+			<Setter Property="Margin" Value="4"/>
+			<Setter Property="MinWidth" Value="5"/>
+			<Setter Property="MinHeight" Value="5"/>
+			<Setter Property="Fill" Value="#777"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget /template/ Rectangle.Default">
-		<Setter Property="RenderTransform" Value="Translate(0px,0px)"/>
-		<Setter Property="Opacity" Value="0.6"/>
-		<Setter Property="Transitions">
-			<Setter.Value>
-				<Transitions>
-					<DoubleTransition Property="Opacity" Duration="0:0:0.4"/>
-				</Transitions>
-			</Setter.Value>
-		</Setter>
-	</Style>
+		<Style Selector="^ /template/ Rectangle.Default">
+			<Setter Property="RenderTransform" Value="Translate(0px,0px)"/>
+			<Setter Property="Opacity" Value="0.6"/>
+			<Setter Property="Transitions">
+				<Setter.Value>
+					<Transitions>
+						<DoubleTransition Property="Opacity" Duration="0:0:0.4"/>
+					</Transitions>
+				</Setter.Value>
+			</Setter>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Orientation=Vertical] /template/ Rectangle.Default">
-		<Setter Property="Cursor" Value="SizeNorthSouth"/>
-	</Style>
+		<Style Selector="^[Orientation=Vertical] /template/ Rectangle.Default">
+			<Setter Property="Cursor" Value="SizeNorthSouth"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Orientation=Horizontal] /template/ Rectangle.Default">
-		<Setter Property="Cursor" Value="SizeWestEast"/>
-	</Style>
+		<Style Selector="^[Orientation=Horizontal] /template/ Rectangle.Default">
+			<Setter Property="Cursor" Value="SizeWestEast"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Mode=Default] /template/ Rectangle.Default">
-		<Setter Property="Opacity" Value="1.0"/>
-	</Style>
+		<Style Selector="^[Mode=Default] /template/ Rectangle.Default">
+			<Setter Property="Opacity" Value="1.0"/>
+		</Style>
 
-	<!--Popout resize zones are transparent and have no translation when nothing is happening-->
-	<Style Selector="asp|ResizeWidget /template/ Panel.PopoutResizeZone">
-		<Setter Property="IsEnabled" Value="False"/>
-		<Setter Property="RenderTransform" Value="Translate(0px,0px)"/>
-		<Setter Property="Opacity" Value="0.0"/>
-		<Setter Property="Transitions">
-			<Setter.Value>
-				<Transitions>
-					<DoubleTransition Property="Opacity" Duration="0:0:0.4"/>
-					<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="ExponentialEaseOut" Delay="0:0:0.2"/>
-				</Transitions>
-			</Setter.Value>
-		</Setter>
-	</Style>
+		<!--Popout resize zones are transparent and have no translation when nothing is happening-->
+		<Style Selector="^/template/ Panel.PopoutResizeZone">
+			<Setter Property="IsEnabled" Value="False"/>
+			<Setter Property="RenderTransform" Value="Translate(0px,0px)"/>
+			<Setter Property="Opacity" Value="0.0"/>
+			<Setter Property="Transitions">
+				<Setter.Value>
+					<Transitions>
+						<DoubleTransition Property="Opacity" Duration="0:0:0.4"/>
+						<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="ExponentialEaseOut" Delay="0:0:0.2"/>
+					</Transitions>
+				</Setter.Value>
+			</Setter>
+		</Style>
 
-	<!--Resize zones are semi-visible when accessible and fully opaque when hovered over-->
-	<Style Selector="asp|ResizeWidget:ArrowAfter /template/ Panel.ResizeZoneAfter">
-		<Setter Property="IsEnabled" Value="True"/>
-		<Setter Property="Opacity" Value="0.6"/>
-	</Style>
+		<!--Resize zones are semi-visible when accessible and fully opaque when hovered over-->
+		<Style Selector="^:ArrowAfter /template/ Panel.ResizeZoneAfter">
+			<Setter Property="IsEnabled" Value="True"/>
+			<Setter Property="Opacity" Value="0.6"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget:ArrowBefore /template/ Panel.ResizeZoneBefore">
-		<Setter Property="IsEnabled" Value="True"/>
-		<Setter Property="Opacity" Value="0.6"/>
-	</Style>
+		<Style Selector="^:ArrowBefore /template/ Panel.ResizeZoneBefore">
+			<Setter Property="IsEnabled" Value="True"/>
+			<Setter Property="Opacity" Value="0.6"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Mode=ArrowAfter] /template/ Panel.ResizeZoneAfter">
-		<Setter Property="IsEnabled" Value="True"/>
-		<Setter Property="Opacity" Value="1.0"/>
-	</Style>
+		<Style Selector="^[Mode=ArrowAfter] /template/ Panel.ResizeZoneAfter">
+			<Setter Property="IsEnabled" Value="True"/>
+			<Setter Property="Opacity" Value="1.0"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Mode=ArrowBefore] /template/ Panel.ResizeZoneBefore">
-		<Setter Property="IsEnabled" Value="True"/>
-		<Setter Property="Opacity" Value="1.0"/>
-	</Style>
+		<Style Selector="^[Mode=ArrowBefore] /template/ Panel.ResizeZoneBefore">
+			<Setter Property="IsEnabled" Value="True"/>
+			<Setter Property="Opacity" Value="1.0"/>
+		</Style>
 
-	<!--Setting the offset when the resize zones are expanded depending on the orientation-->
-	<Style Selector="asp|ResizeWidget:ArrowBefore[Orientation=Vertical] /template/ Panel.ResizeZoneBefore">
-		<Setter Property="RenderTransform" Value="Translate(0px,-5px)"/>
-	</Style>
+		<!--Setting the offset when the resize zones are expanded depending on the orientation-->
+		<Style Selector="^:ArrowBefore[Orientation=Vertical] /template/ Panel.ResizeZoneBefore">
+			<Setter Property="RenderTransform" Value="Translate(0px,-5px)"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget:ArrowAfter[Orientation=Vertical] /template/ Panel.ResizeZoneAfter">
-		<Setter Property="RenderTransform" Value="Translate(0px,5px)"/>
-	</Style>
+		<Style Selector="^:ArrowAfter[Orientation=Vertical] /template/ Panel.ResizeZoneAfter">
+			<Setter Property="RenderTransform" Value="Translate(0px,5px)"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget:ArrowBefore[Orientation=Horizontal] /template/ Panel.ResizeZoneBefore">
-		<Setter Property="RenderTransform" Value="Translate(-5px,0px)"/>
-	</Style>
+		<Style Selector="^:ArrowBefore[Orientation=Horizontal] /template/ Panel.ResizeZoneBefore">
+			<Setter Property="RenderTransform" Value="Translate(-5px,0px)"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget:ArrowAfter[Orientation=Horizontal] /template/ Panel.ResizeZoneAfter">
-		<Setter Property="RenderTransform" Value="Translate(5px,0px)"/>
-	</Style>
+		<Style Selector="^:ArrowAfter[Orientation=Horizontal] /template/ Panel.ResizeZoneAfter">
+			<Setter Property="RenderTransform" Value="Translate(5px,0px)"/>
+		</Style>
 
-	<!--Setting the path for the arrows depending on the orientation-->
-	<Style Selector="asp|ResizeWidget[Orientation=Vertical] /template/ Path.ArrowBefore">
-		<Setter Property="Data" Value="M 0,0 L 5,5 L 10 0"/>
-		<Setter Property="RenderTransform" Value="translateY(-8px)"/>
-	</Style>
+		<!--Setting the path data for the arrows depending on the orientation-->
+		<Style Selector="^[Orientation=Vertical] /template/ Path.ArrowBefore">
+			<Setter Property="Data" Value="M 0,0 L 5,5 L 10 0"/>
+			<Setter Property="RenderTransform" Value="translateY(-8px)"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Orientation=Vertical] /template/ Path.ArrowAfter">
-		<Setter Property="Data" Value="M 0,0 L 5,-5 L 10 0"/>
-		<Setter Property="RenderTransform" Value="translateY(11px)"/>
-	</Style>
+		<Style Selector="^[Orientation=Vertical] /template/ Path.ArrowAfter">
+			<Setter Property="Data" Value="M 0,0 L 5,-5 L 10 0"/>
+			<Setter Property="RenderTransform" Value="translateY(11px)"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Orientation=Horizontal] /template/ Path.ArrowBefore">
-		<Setter Property="Data" Value="M 0,0 L 5,5 L 0 10"/>
-		<Setter Property="RenderTransform" Value="translateX(-8px)"/>
-	</Style>
+		<Style Selector="^[Orientation=Horizontal] /template/ Path.ArrowBefore">
+			<Setter Property="Data" Value="M 0,0 L 5,5 L 0 10"/>
+			<Setter Property="RenderTransform" Value="translateX(-8px)"/>
+		</Style>
 
-	<Style Selector="asp|ResizeWidget[Orientation=Horizontal] /template/ Path.ArrowAfter">
-		<Setter Property="Data" Value="M 0,0 L -5,5 L 0 10"/>
-		<Setter Property="RenderTransform" Value="translateX(11px)"/>
+		<Style Selector="^[Orientation=Horizontal] /template/ Path.ArrowAfter">
+			<Setter Property="Data" Value="M 0,0 L -5,5 L 0 10"/>
+			<Setter Property="RenderTransform" Value="translateX(11px)"/>
+		</Style>
 	</Style>
 </Styles>

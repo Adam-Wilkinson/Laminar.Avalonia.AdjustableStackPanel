@@ -20,7 +20,6 @@ public partial class MainWindow : Window
 
         orientationSelector.ItemsSource = (Orientation[])typeof(Orientation).GetEnumValues();
         orientationSelector.SelectedItem = AdjustableStackPanel.Orientation;
-
         animationDurationSelector.Value = AdjustableStackPanel.TransitionDuration.TotalMilliseconds;
     }
 

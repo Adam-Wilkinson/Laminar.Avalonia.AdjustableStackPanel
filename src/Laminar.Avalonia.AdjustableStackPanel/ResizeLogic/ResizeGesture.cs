@@ -11,9 +11,8 @@ public enum ResizerModifier
 public enum ResizeFlags
 {
     None                         = 0,
-    DisableResizeAfter    = 1 << 0,
-    DisableResizeBefore   = 1 << 1,
-    HasTransition                = 1 << 2,
+    DisableResizeAfter           = 1 << 0,
+    DisableResizeBefore          = 1 << 1,
 }
 
 public delegate double ResizeAmountTransformation(double resizeAmount, double originalResizeSpace, double currentResizeSpace, double totalResizeSpace);
@@ -167,6 +166,16 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
     public readonly double Execute<T>(IList<T> resizeElements, int activeResizerIndex, double resizeAmount, Span<double> spaceBeforeResizers, IResizingHarness<T> harness, ResizeFlags currentResizeFlags)
     {
         double changeInStackSize = 0;
+
+        foreach ((int indexOfCurrentResize, Resize resize) in AccessibleResizes(resizeElements, activeResizerIndex))
+        {
+            if (!resize.HasSpaceForResize(resizeElements, harness, resizeAmount, indexOfCurrentResize, activeResizerIndex, spaceBeforeResizers, Flags & currentResizeFlags))
+            {
+                return 0;
+            }
+        }
+
+
         foreach ((int indexOfCurrentResize, Resize resize) in AccessibleResizes(resizeElements, activeResizerIndex))
         {
             changeInStackSize += resize.Execute(resizeElements, harness, resizeAmount, indexOfCurrentResize, activeResizerIndex, spaceBeforeResizers, Flags & currentResizeFlags);

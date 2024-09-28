@@ -161,10 +161,10 @@ public class AdjustableStackPanel : StackPanel
         {
             ResizeMethod.SqueezeExpand.RunMethod(Children.CreateForwardsSlice(0), ControlResizingHarness.GetHarness(Orientation), freeSpace, resizableSpaceBeforeControls[^1]);
         }
-        else if (freeSpace < 0 && _currentResizeAmount.HasValue && _lastChangedResizer is not null && _lastChangedResizerIndex.HasValue)
-        {
-            ResizeGesture.GetGesture(_lastChangedResizer.Mode, _resizerModifier).Execute(Children, _lastChangedResizerIndex.Value, -freeSpace, resizableSpaceBeforeControls, ControlResizingHarness.GetHarness(Orientation), CurrentStackResizeFlags());
-        }
+        //else if (freeSpace < 0 && _currentResizeAmount.HasValue && _lastChangedResizer is not null && _lastChangedResizerIndex.HasValue)
+        //{
+        //    ResizeGesture.GetGesture(_lastChangedResizer.Mode, _resizerModifier).Execute(Children, _lastChangedResizerIndex.Value, -freeSpace, resizableSpaceBeforeControls, ControlResizingHarness.GetHarness(Orientation), CurrentStackResizeFlags());
+        //}
 
         _currentResizeAmount = null;
         _sizeChangeInvalidatesMeasure = true;
@@ -209,11 +209,10 @@ public class AdjustableStackPanel : StackPanel
             }
 
             resizer.Size = Math.Max(resizer.Size, childDesiredSizeOriented.Height);
-            double resizerDictatedControlSize = resizer.Size;
-            totalStackHeight += (IsInStretchMode() ? childDesiredSizeOriented.Height : resizerDictatedControlSize) + resizerDesiredSizeOriented.Height + resizer.OffsetAnimator.SizeOffset + resizer.OffsetAnimator.PositionOffsetAfter;
+            totalStackHeight += (IsInStretchMode() ? childDesiredSizeOriented.Height : resizer.Size) + resizerDesiredSizeOriented.Height + resizer.OffsetAnimator.SizeOffset + resizer.OffsetAnimator.PositionOffsetAfter;
             maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, childDesiredSizeOriented.Width);
 
-            resizableSpaceBeforeControls[i] = (i == 0 ? 0 : resizableSpaceBeforeControls[i - 1]) + resizerDictatedControlSize - childDesiredSizeOriented.Height;
+            resizableSpaceBeforeControls[i] = (i == 0 ? 0 : resizableSpaceBeforeControls[i - 1]) + resizer.Size - childDesiredSizeOriented.Height;
         }
 
         if (_currentResizeAmount.HasValue && _lastChangedResizerIndex.HasValue && ResizeGesture.TryGetGesture(currentHoverResizer?.Mode, _resizerModifier, out ResizeGesture gesture))

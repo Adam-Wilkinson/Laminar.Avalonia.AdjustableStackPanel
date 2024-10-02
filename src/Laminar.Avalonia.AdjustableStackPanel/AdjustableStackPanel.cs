@@ -129,13 +129,11 @@ public class AdjustableStackPanel : StackPanel
         Controls children = Children;
         double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore));
 
-        // First loop exists to check control sizes and free space
         if (IsInStretchMode() && Children.Count > 0)
         {
             ResizeControlsToFillSpace(finalSize);
         }
 
-        // Now we arrange the controls
         for (int i = 0, count = children.Count; i < count; i++)
         {
             Control child = children[i];
@@ -190,7 +188,7 @@ public class AdjustableStackPanel : StackPanel
             if (resizer.Size == 0)
             {
                 resizer.Size = childDesiredSizeOriented.Height;
-                if (_totalStackSize > 0)
+                if (IsLoaded)
                 {
                     resizer.OffsetAnimator.ChangeSizeOffset(-resizer.Size);
                 }
@@ -232,12 +230,6 @@ public class AdjustableStackPanel : StackPanel
             }
 
             ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
-
-            if (currentResizer.Size == 0)
-            {
-                currentResizer.Size = (Orientation == Orientation.Horizontal ? availableSpace.Width : availableSpace.Height) / Math.Max(Children.Count - 1, 1);
-                currentResizer.OffsetAnimator.ChangeSizeOffset(-currentResizer.Size);
-            }
 
             double controlSize = Math.Max(0, currentResizer.Size + currentResizer.OffsetAnimator.SizeOffset);
             double childDesiredDepth = Orientation == Orientation.Horizontal ? child.DesiredSize.Width : child.DesiredSize.Height;

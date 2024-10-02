@@ -51,7 +51,7 @@
 		<asp:AdjustableStackPanel Name="AdjustableStackPanel"
 								  TransitionDuration="0:0:0.5" 
 								  TransitionEasing="QuinticEaseOut"
-								  VerticalAlignment="Stretch"
+								  VerticalAlignment="Top"
 								  HorizontalAlignment="Stretch" 
 								  Orientation="Vertical">
 			<local:ExamplePanelChild/>

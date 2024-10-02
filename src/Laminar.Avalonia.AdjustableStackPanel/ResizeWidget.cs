@@ -33,12 +33,14 @@ public class ResizeWidget : TemplatedControl
 
     static ResizeWidget()
     {
-        // Load the custom styles manually
-        StyleInclude newStyles = new(new Uri("resm:Styles?assembly=Laminar.Avalonia.AdjustableStackPanel"))
+        // Load the themes manually
+        Uri? nullUri = null;
+        ResourceInclude themes = new(nullUri)
         {
-            Source = new Uri("avares://Laminar.Avalonia.AdjustableStackPanel/ResizeWidgetDefaultStyle.axaml"),
+            Source = new Uri("avares://Laminar.Avalonia.AdjustableStackpanel/ResizeWidgetThemes.axaml"),
         };
-        Application.Current!.Styles.Add(newStyles);
+
+        Application.Current?.Resources.MergedDictionaries.Add(themes);
     }
 
     public Func<ResizerMode, bool>? ModeAccessibleCheck = null;

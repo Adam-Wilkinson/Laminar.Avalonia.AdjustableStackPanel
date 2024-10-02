@@ -157,14 +157,10 @@ public class AdjustableStackPanel : StackPanel
         }
 
         double freeSpace = (Orientation == Orientation.Horizontal ? finalSize.Width : finalSize.Height) - currentDepth;
-        if (IsInStretchMode())
+        if (IsInStretchMode() && Children.Count > 0)
         {
             ResizeMethod.SqueezeExpand.RunMethod(Children.CreateForwardsSlice(0), ControlResizingHarness.GetHarness(Orientation), freeSpace, resizableSpaceBeforeControls[^1]);
         }
-        //else if (freeSpace < 0 && _currentResizeAmount.HasValue && _lastChangedResizer is not null && _lastChangedResizerIndex.HasValue)
-        //{
-        //    ResizeGesture.GetGesture(_lastChangedResizer.Mode, _resizerModifier).Execute(Children, _lastChangedResizerIndex.Value, -freeSpace, resizableSpaceBeforeControls, ControlResizingHarness.GetHarness(Orientation), CurrentStackResizeFlags());
-        //}
 
         _currentResizeAmount = null;
         _sizeChangeInvalidatesMeasure = true;
@@ -321,10 +317,7 @@ public class AdjustableStackPanel : StackPanel
     }
 
     private bool IsInStretchMode()
-    {
-        ResizeFlags flags = CurrentStackResizeFlags();
-        return !flags.HasFlag(ResizeFlags.DisableResizeBefore)  && !flags.HasFlag(ResizeFlags.DisableResizeAfter);
-    }
+        => Orientation == Orientation.Horizontal ? HorizontalAlignment == HorizontalAlignment.Stretch : VerticalAlignment == VerticalAlignment.Stretch;
 
     private ResizeWidget ResizerAtIndex(int index)
     {

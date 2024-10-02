@@ -1,25 +1,28 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel">
-
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel">
+	
 	<!-- Design Preview -->
 	<Design.PreviewWith>
 		<Border Margin="3" BorderBrush="Gray" BorderThickness="4" Width="300">
 			<StackPanel Spacing="30" Margin="5">
 				<asp:ResizeWidget Orientation="Vertical"/>
-
+				<asp:ResizeWidget Orientation="Vertical" Theme="{StaticResource Invisible}"/>
+				<asp:ResizeWidget Orientation="Vertical" Theme="{StaticResource Slim}"/>
 				<asp:ResizeWidget Orientation="Horizontal" HorizontalAlignment="Center" Height="50"/>
 			</StackPanel>
 		</Border>
 	</Design.PreviewWith>
-
-	<!-- Default Resize Widget Template & Styles -->
-	<Style Selector="asp|ResizeWidget">
+	
+	<ControlTheme x:Key="{x:Type asp:ResizeWidget}" TargetType="{x:Type asp:ResizeWidget}">
 		<Setter Property="ClipToBounds" Value="False"/>
 		<Setter Property="Template">
 			<ControlTemplate>
 				<Panel ClipToBounds="False">
-					<Panel Classes="PopoutResizeZone ResizeZoneAfter" ClipToBounds="False" Cursor="Hand" Name="PART_ResizeZoneAfter">
+					<Panel Classes="PopoutResizeZone ResizeZoneAfter" 
+						   ClipToBounds="False" 
+						   Cursor="Hand" 
+						   Name="PART_ResizeZoneAfter">
 						<Rectangle Classes="ResizeZone"/>
 						<Path Classes="ArrowAfter"
 							  ClipToBounds="False"
@@ -28,7 +31,10 @@
 							  Stroke="#777"
 							  StrokeThickness="2"/>
 					</Panel>
-					<Panel Classes="PopoutResizeZone ResizeZoneBefore" ClipToBounds="False" Cursor="Hand" Name="PART_ResizeZoneBefore">
+					<Panel Classes="PopoutResizeZone ResizeZoneBefore" 
+						   ClipToBounds="False" 
+						   Cursor="Hand" 
+						   Name="PART_ResizeZoneBefore">
 						<Rectangle Classes="ResizeZone"/>
 						<Path Classes="ArrowBefore"
 							  ClipToBounds="False"
@@ -37,15 +43,17 @@
 							  Stroke="#777"
 							  StrokeThickness="2"/>
 					</Panel>
-					<Rectangle Classes="ResizeZone Default" Name="PART_DefaultResizeZone"/>
+					<Rectangle Classes="ResizeZone Default" 
+							   Name="PART_DefaultResizeZone"/>
 				</Panel>
 			</ControlTemplate>
 		</Setter>
 
+		<!-- Styling all resize zones and the default resizer -->
 		<Style Selector="^ /template/ Rectangle.ResizeZone">
 			<Setter Property="Margin" Value="4"/>
-			<Setter Property="MinWidth" Value="5"/>
-			<Setter Property="MinHeight" Value="5"/>
+			<Setter Property="MinWidth" Value="4"/>
+			<Setter Property="MinHeight" Value="4"/>
 			<Setter Property="Fill" Value="#777"/>
 		</Style>
 
@@ -60,6 +68,7 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
+
 
 		<Style Selector="^[Orientation=Vertical] /template/ Rectangle.Default">
 			<Setter Property="Cursor" Value="SizeNorthSouth"/>
@@ -146,5 +155,67 @@
 			<Setter Property="Data" Value="M 0,0 L -5,5 L 0 10"/>
 			<Setter Property="RenderTransform" Value="translateX(11px)"/>
 		</Style>
-	</Style>
-</Styles>
+	</ControlTheme>
+
+	<ControlTheme x:Key="Slim" TargetType="{x:Type asp:ResizeWidget}">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Panel ClipToBounds="False">
+					<Rectangle Classes="ResizeZone Default"
+							   Name="PART_DefaultResizeZone"
+							   MinHeight="1"
+							   MinWidth="1"
+							   Fill="#777"/>
+				</Panel>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^ /template/ Rectangle.Default">
+			<Setter Property="RenderTransform" Value="Translate(0px,0px)"/>
+			<Setter Property="Opacity" Value="0.6"/>
+			<Setter Property="Transitions">
+				<Setter.Value>
+					<Transitions>
+						<DoubleTransition Property="Opacity" Duration="0:0:0.4"/>
+					</Transitions>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+
+		<Style Selector="^[Orientation=Vertical] /template/ Rectangle.Default">
+			<Setter Property="Cursor" Value="SizeNorthSouth"/>
+		</Style>
+
+		<Style Selector="^[Orientation=Horizontal] /template/ Rectangle.Default">
+			<Setter Property="Cursor" Value="SizeWestEast"/>
+		</Style>
+
+		<Style Selector="^[Mode=Default] /template/ Rectangle.Default">
+			<Setter Property="Opacity" Value="1.0"/>
+		</Style>
+	</ControlTheme>
+
+	<ControlTheme x:Key="Invisible" TargetType="{x:Type asp:ResizeWidget}">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Panel ClipToBounds="False">
+					<Rectangle Classes="ResizeZone Default" 
+							   Name="PART_DefaultResizeZone"
+							   MinHeight="1"
+							   MinWidth="1"
+							   Fill="#00FFFFFF"/>
+				</Panel>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^[Orientation=Vertical]">
+			<Setter Property="Cursor" Value="SizeNorthSouth"/>
+		</Style>
+
+		<Style Selector="^[Orientation=Horizontal]">
+			<Setter Property="Cursor" Value="SizeWestEast"/>
+		</Style>
+	</ControlTheme>
+	
+</ResourceDictionary>

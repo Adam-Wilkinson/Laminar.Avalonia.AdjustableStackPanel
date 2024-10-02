@@ -12,16 +12,31 @@
 			<StackPanel Margin="15" Orientation="Vertical">
 				<TextBlock Margin="0,0,0,8">Horizontal Alignment:</TextBlock>
 				<ComboBox Name="horizontalAlignmentSelector"
+						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
 						  SelectedIndex="0"
 						  SelectedItem="{Binding #AdjustableStackPanel.HorizontalAlignment, Mode=TwoWay}"/>
 				<TextBlock Margin="0,15,0,8">Vertical Alignment:</TextBlock>
 				<ComboBox Name="verticalAlignmentSelector"
+						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
 						  SelectedItem="{Binding #AdjustableStackPanel.VerticalAlignment, Mode=TwoWay}"
 						  SelectedIndex="0"/>
-				<TextBlock Margin="0,15,0,0">Orientation</TextBlock>
+				<TextBlock Margin="0,15,0,8">Orientation:</TextBlock>
 				<ComboBox Name="orientationSelector"
+						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
 						  SelectedItem="{Binding #AdjustableStackPanel.Orientation, Mode=TwoWay}"
 						  SelectedIndex="0"/>
+				<TextBlock Margin="0,15,0,8"
+						   ToolTip.Tip="This is not working due to what I think is an Avalonia bug. The themes are working but they do not dynamically update"
+						   ToolTip.ShowDelay="0">Resize Widget Theme:</TextBlock>
+				<ComboBox Name="themeSelector"
+						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+						  ToolTip.Tip="This is not working due to what I think is an Avalonia bug. The themes are working but they do not dynamically update"
+						  ToolTip.ShowDelay="0"
+						  SelectedIndex="0">
+					<ComboBoxItem Tag="{StaticResource {x:Type asp:ResizeWidget}}" Content="Default"/>
+					<ComboBoxItem Tag="{StaticResource Invisible}" Content="Invisible"/>
+					<ComboBoxItem Tag="{StaticResource Slim}" Content="Slim"/>
+				</ComboBox>
 				<StackPanel Margin="0,15,0,-5" Orientation="Horizontal">
 					<TextBlock Margin="0,0,5,0">Animation Duration:</TextBlock>
 					<TextBlock Text="{Binding #animationDurationSelector.Value}"/>
@@ -40,6 +55,13 @@
 								  HorizontalAlignment="Stretch" 
 								  Orientation="Vertical">
 			<local:ExamplePanelChild/>
+
+			<asp:AdjustableStackPanel.Styles>
+				<Style Selector="asp|ResizeWidget">
+					<Setter Property="Theme" Value="{Binding #themeSelector.SelectedItem.Tag}"/>
+				</Style>
+			</asp:AdjustableStackPanel.Styles>
+			
 		</asp:AdjustableStackPanel>
 	</DockPanel>
 

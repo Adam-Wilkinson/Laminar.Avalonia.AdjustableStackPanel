@@ -1,4 +1,7 @@
+using System;
+using System.Security.Cryptography;
 using Avalonia.Controls;
+using Avalonia.Media;
 
 namespace Laminar.Avalonia.AdjustableStackPanel.Example;
 
@@ -8,6 +11,9 @@ public partial class ExamplePanelChild : UserControl
     {
         InitializeComponent();
         DataContext = this;
+        Span<byte> rgb = stackalloc byte[3];
+        Random.Shared.NextBytes(rgb);
+        Background = new SolidColorBrush(new Color(10, rgb[0], rgb[1], rgb[2]));
     }
 
     public void InsertExampleBefore()

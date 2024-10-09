@@ -1,7 +1,11 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
-public record ListSlice<T>
+public readonly struct ListSlice<T>
 {
+    public ListSlice()
+    {
+    }
+
     public required IList<T> OriginalList { private get; init; }
 
     public required int StartingIndex { private get; init; }
@@ -9,6 +13,8 @@ public record ListSlice<T>
     public required int EndIndex { private get; init; }
 
     public required bool Reverse { private get; init; }
+
+    public int[] ExcludedIndices { get; init; } = [];
 
     public int Length => 1 + EndIndex - StartingIndex;
 

@@ -17,7 +17,7 @@ public enum ResizeFlags
 
 public delegate double ResizeAmountTransformation(double resizeAmount, double originalResizeSpace, double currentResizeSpace, double totalResizeSpace);
 
-public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, ResizerModifier Modifier, ResizeFlags Flags = ResizeFlags.None)
+public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMode Mode, ResizerModifier Modifier, ResizeFlags Flags = ResizeFlags.None)
 {
     public static readonly ResizeAmountTransformation MaintainResizeAmount = (x, _, _, _) => x;
     public static readonly ResizeAmountTransformation NegateResizeAmount = (x, _, _, _) => -x;
@@ -149,9 +149,9 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
         return EmptyGesture;
     }
 
-    public readonly IEnumerable<(int index, Resize resize)> AccessibleResizes<T>(IList<T> resizeElements, int index)
+    public readonly IEnumerable<(int index, ResizerMovement resize)> AccessibleResizes<T>(IList<T> resizeElements, int index)
     {
-        foreach (Resize resize in Resizes)
+        foreach (ResizerMovement resize in Resizes)
         {
             int indexOfCurrentResize = index + resize.IndexOffset;
             if (indexOfCurrentResize < -1 || indexOfCurrentResize >= resizeElements.Count)
@@ -167,7 +167,7 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
     {
         double changeInStackSize = 0;
 
-        foreach ((int indexOfCurrentResize, Resize resize) in AccessibleResizes(resizeElements, activeResizerIndex))
+        foreach ((int indexOfCurrentResize, ResizerMovement resize) in AccessibleResizes(resizeElements, activeResizerIndex))
         {
             if (!resize.HasSpaceForResize(resizeElements, harness, resizeAmount, indexOfCurrentResize, activeResizerIndex, spaceBeforeResizers, Flags & currentResizeFlags))
             {
@@ -176,7 +176,7 @@ public readonly record struct ResizeGesture(Resize[] Resizes, ResizerMode Mode, 
         }
 
 
-        foreach ((int indexOfCurrentResize, Resize resize) in AccessibleResizes(resizeElements, activeResizerIndex))
+        foreach ((int indexOfCurrentResize, ResizerMovement resize) in AccessibleResizes(resizeElements, activeResizerIndex))
         {
             changeInStackSize += resize.Execute(resizeElements, harness, resizeAmount, indexOfCurrentResize, activeResizerIndex, spaceBeforeResizers, Flags & currentResizeFlags);
         }

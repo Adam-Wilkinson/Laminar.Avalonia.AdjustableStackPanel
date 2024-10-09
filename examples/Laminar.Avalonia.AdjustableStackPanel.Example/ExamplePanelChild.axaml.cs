@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Media;
 
@@ -37,4 +38,14 @@ public partial class ExamplePanelChild : UserControl
     }
 
     public void RemoveSelf() => (Parent as AdjustableStackPanel)?.Children.Remove(this);
+
+    public async void Hide()
+    {
+        double size = ResizeWidget.GetOrCreateResizer(this).Size;
+        ResizeWidget.GetOrCreateResizer(this).Size = 0;
+        ResizeWidget.GetOrCreateResizer(this).OffsetAnimator.ChangeSizeOffset(size);
+        await Task.Delay(2000);
+        ResizeWidget.GetOrCreateResizer(this).Size = size;
+        ResizeWidget.GetOrCreateResizer(this).OffsetAnimator.ChangeSizeOffset(-size);
+    }
 }

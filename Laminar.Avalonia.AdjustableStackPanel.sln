@@ -8,11 +8,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laminar.Avalonia.Adjustable
 		{A22BF288-1828-4F93-81BA-0A19A534FE66} = {A22BF288-1828-4F93-81BA-0A19A534FE66}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laminar.Avalonia.AdjustableStackPanel", "src\Laminar.Avalonia.AdjustableStackPanel\Laminar.Avalonia.AdjustableStackPanel.csproj", "{A22BF288-1828-4F93-81BA-0A19A534FE66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laminar.Avalonia.AdjustableStackPanel", "src\Laminar.Avalonia.AdjustableStackPanel\Laminar.Avalonia.AdjustableStackPanel.csproj", "{A22BF288-1828-4F93-81BA-0A19A534FE66}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{070A9A78-658C-4A55-8C34-AA1E8C7CA266}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{A128230E-3384-41BF-B87B-6FD3411003C0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3C0F88BA-4761-40DB-80CA-9BF2D796CECC}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

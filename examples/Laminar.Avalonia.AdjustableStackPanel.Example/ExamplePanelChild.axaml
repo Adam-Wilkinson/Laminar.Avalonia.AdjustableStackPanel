@@ -15,6 +15,7 @@
 				HorizontalAlignment="Center">
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding InsertExampleBefore}">Add Control Before</Button>
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding RemoveSelf}">Remove Control</Button>
+		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding Hide}">Hide Control</Button>
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding InsertExampleAfter}">Add Control After</Button>
 	</StackPanel>
 </UserControl>

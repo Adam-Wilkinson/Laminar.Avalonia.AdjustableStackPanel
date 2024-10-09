@@ -1,8 +1,10 @@
 ﻿using System.Collections.Specialized;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Reactive;
 using Avalonia.VisualTree;
@@ -38,21 +40,25 @@ public class AdjustableStackPanel : StackPanel
 
     static AdjustableStackPanel()
     {
-        ResizeWidget.SizeProperty.Changed.Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs<double>>(ResizeWidgetSizeChanged));
         ResizeWidget.ModeProperty.Changed.Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs<ResizerMode>>(ResizeWidgetModeChanged));
     }
 
-    private static void ResizeWidgetSizeChanged(AvaloniaPropertyChangedEventArgs<double> e)
+    private void OnResize(object? sender, ResizeEventArgs e)
     {
-        if (e.Sender is not ResizeWidget resizer || resizer.GetVisualParent() is not AdjustableStackPanel adjustableStackPanel || !adjustableStackPanel._sizeChangeInvalidatesMeasure)
-        {
-            return;
-        }
+        if (!_sizeChangeInvalidatesMeasure) return;
 
-        adjustableStackPanel._sizeChangeInvalidatesMeasure = false;
-        adjustableStackPanel._currentResizeAmount = e.NewValue.GetValueOrDefault() - e.OldValue.GetValueOrDefault();
-        resizer.Size = e.OldValue.GetValueOrDefault();
-        adjustableStackPanel.InvalidateMeasure();
+        _sizeChangeInvalidatesMeasure = false;
+        e.Handled = true;
+        _currentResizeAmount = e.ResizeAmount;
+        InvalidateMeasure();
+    }
+
+    private void OnResizerModeChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Sender is not ResizeWidget resizer) return;
+
+        _lastChangedResizer = resizer;
+        UpdateGesture();
     }
 
     private static void ResizeWidgetModeChanged(AvaloniaPropertyChangedEventArgs<ResizerMode> e)
@@ -68,6 +74,8 @@ public class AdjustableStackPanel : StackPanel
 
     public AdjustableStackPanel()
     {
+        AddHandler(ResizeWidget.ResizeEvent, OnResize, RoutingStrategies.Tunnel);
+
         _originalResizer[!ResizeWidget.OrientationProperty] = this[!OrientationProperty];
         LogicalChildren.Add(_originalResizer);
         VisualChildren.Add(_originalResizer);
@@ -114,7 +122,7 @@ public class AdjustableStackPanel : StackPanel
             resizer.Mode = ResizerMode.None;
         }
 
-        foreach ((int currentResizerIndex, Resize resize) in ResizeGesture.GetGesture(_lastChangedResizer?.Mode, _resizerModifier).AccessibleResizes(Children, _lastChangedResizerIndex!.Value))
+        foreach ((int currentResizerIndex, ResizerMovement resize) in ResizeGesture.GetGesture(_lastChangedResizer?.Mode, _resizerModifier).AccessibleResizes(Children, _lastChangedResizerIndex!.Value))
         {
             ResizeWidget currentResizer = ResizerAtIndex(currentResizerIndex);
             currentResizer.ShowAccessibleModes();
@@ -137,13 +145,13 @@ public class AdjustableStackPanel : StackPanel
         for (int i = 0, count = children.Count; i < count; i++)
         {
             Control child = children[i];
+            ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
 
             if (child is null || !child.IsVisible)
             {
+                currentResizer.IsVisible = false;
                 continue;
             }
-
-            ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
 
             double controlSize = Math.Max(0, currentResizer.Size + currentResizer.OffsetAnimator.SizeOffset);
             child.Arrange(OrientedArrangeRect(currentDepth, controlSize, finalSize));
@@ -179,13 +187,19 @@ public class AdjustableStackPanel : StackPanel
         for (int i = 0, count = children.Count; i < count; ++i)
         {
             Control child = children[i];
+
+            if (child is null || !child.IsVisible)
+            {
+                continue;
+            }
+
             ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(child);
             child.Measure(availableSize);
             resizer.Measure(availableSize);
             Size childDesiredSizeOriented = isHorizontal ? new Size(child.DesiredSize.Height, child.DesiredSize.Width) : child.DesiredSize;
             Size resizerDesiredSizeOriented = isHorizontal ? new Size(resizer.DesiredSize.Height, resizer.DesiredSize.Width) : resizer.DesiredSize;
 
-            if (resizer.Size == 0)
+            if (resizer.Size < 0)
             {
                 resizer.Size = childDesiredSizeOriented.Height;
                 if (IsLoaded)
@@ -194,7 +208,6 @@ public class AdjustableStackPanel : StackPanel
                 }
             }
 
-            resizer.Size = Math.Max(resizer.Size, childDesiredSizeOriented.Height);
             measuredStackHeight += (IsInStretchMode() ? childDesiredSizeOriented.Height : resizer.Size) + resizerDesiredSizeOriented.Height + resizer.OffsetAnimator.SizeOffset + resizer.OffsetAnimator.PositionOffsetAfter;
             maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, childDesiredSizeOriented.Width);
 
@@ -219,6 +232,11 @@ public class AdjustableStackPanel : StackPanel
         Controls children = Children;
         Span<double> resizableSpaceBeforeControls = stackalloc double[children.Count];
         double totalStackSize = 0;
+
+        if (CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore))
+        {
+            totalStackSize += (Orientation == Orientation.Horizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height) + _originalResizer.OffsetAnimator.SizeOffset + _originalResizer.OffsetAnimator.PositionOffsetAfter;
+        }
 
         for (int i = 0, count = children.Count; i < count; i++)
         {
@@ -279,9 +297,9 @@ public class AdjustableStackPanel : StackPanel
             VisualChildren.Add(resizer);
             resizer.OffsetAnimator.BindTransitionProperties(TransitionDurationProperty, TransitionEasingProperty, this);
 
-            if (resizer.Size == 0 && totalItemsBeforeChange > 0 && IsInStretchMode())
+            if (resizer.Size == 0)
             {
-                resizer.Size = _totalStackSize / Math.Max(totalItemsBeforeChange, 1);
+                resizer.Size = IsInStretchMode() ? _totalStackSize / Math.Max(totalItemsBeforeChange, 1) : -1;
                 resizer.OffsetAnimator.ChangeSizeOffset(-resizer.Size);
             }
 

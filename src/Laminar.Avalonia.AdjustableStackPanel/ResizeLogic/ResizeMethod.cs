@@ -53,7 +53,7 @@ public static class ResizeMethodExtensions
         foreach (T resizable in resizeElements.Items)
         {
             double controlResizableSpace = resizingHarness.GetSize(resizable) - resizingHarness.GetMinimumSize(resizable);
-            resizingHarness.Resize(resizable, -sizeReductionAmount *  controlResizableSpace / totalResizeSpace);
+            resizingHarness.Resize(resizable, -sizeReductionAmount * controlResizableSpace / totalResizeSpace);
         }
 
         return -sizeReductionAmount;

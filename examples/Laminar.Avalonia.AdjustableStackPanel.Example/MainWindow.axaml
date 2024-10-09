@@ -52,7 +52,8 @@
 								  TransitionDuration="0:0:0.5" 
 								  TransitionEasing="QuinticEaseOut"
 								  VerticalAlignment="Top"
-								  HorizontalAlignment="Stretch" 
+								  HorizontalAlignment="Stretch"
+								  Background="#11999999"
 								  Orientation="Vertical">
 			<local:ExamplePanelChild/>
 

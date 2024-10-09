@@ -1,6 +1,6 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
-public readonly record struct Resize(int IndexOffset, ResizeAmountTransformation ResizeAmountTransformation, ResizerMode ResizerMode)
+public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTransformation ResizeAmountTransformation, ResizerMode ResizerMode)
 {
     public readonly bool HasSpaceForResize<T>(IList<T> resizeElements, IResizingHarness<T> resizeHarness, double resizeAmount, int indexOfCurrentResizer, int activeResizerIndex, Span<double> spaceBeforeResizers, ResizeFlags flags)
     {

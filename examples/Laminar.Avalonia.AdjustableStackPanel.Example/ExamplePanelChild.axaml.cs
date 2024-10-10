@@ -42,10 +42,8 @@ public partial class ExamplePanelChild : UserControl
     public async void Hide()
     {
         double size = ResizeWidget.GetOrCreateResizer(this).Size;
-        ResizeWidget.GetOrCreateResizer(this).Size = 0;
-        ResizeWidget.GetOrCreateResizer(this).OffsetAnimator.ChangeSizeOffset(size);
+        ResizeWidget.GetOrCreateResizer(this).SetSizeTo(0, true);
         await Task.Delay(2000);
-        ResizeWidget.GetOrCreateResizer(this).Size = size;
-        ResizeWidget.GetOrCreateResizer(this).OffsetAnimator.ChangeSizeOffset(-size);
+        ResizeWidget.GetOrCreateResizer(this).SetSizeTo(size, true);
     }
 }

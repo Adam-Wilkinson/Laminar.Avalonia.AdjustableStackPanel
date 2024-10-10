@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using Avalonia;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
@@ -19,7 +20,7 @@ public class ResizeWidget : TemplatedControl
 {
     public static readonly StyledProperty<Orientation> OrientationProperty = AvaloniaProperty.Register<ResizeWidget, Orientation>(nameof(Orientation));
 
-    public static readonly DirectProperty<ResizeWidget, double> SizeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, double>(nameof(Size), r => r._size, (r, v) => r._size = v);
+    public static readonly DirectProperty<ResizeWidget, double> SizeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, double>(nameof(Size), r => r.Size, (r, v) => r._size = v);
 
     public static readonly DirectProperty<ResizeWidget, ResizerMode> ModeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, ResizerMode>(nameof(Mode), r => r._mode, (r, v) => r._mode = v);
 
@@ -31,6 +32,7 @@ public class ResizeWidget : TemplatedControl
     public static void SetResizeWidget(Control control, ResizeWidget? resizeWidget) => control.SetValue(ResizeWidgetProperty, resizeWidget);
 
     private static readonly FrozenDictionary<ResizerMode, string> ModePseudoClasses = ResizerModeExtensions.AllModes().ToFrozenDictionary(x => x, x => ":" + x.ToString());
+    private readonly RenderOffsetAnimator _offsetAnimator = new();
     private ResizerMode _mode;
     private double _size;
     private Point? _originalClickPoint = null;
@@ -62,10 +64,11 @@ public class ResizeWidget : TemplatedControl
 
     public double Size
     {
-        get => _size;
+        get => _size + _offsetAnimator.SizeOffset;
         set => SetAndRaise(SizeProperty, ref _size, value);
-
     }
+
+    public double TargetSize => _size;
 
     public ResizerMode Mode
     {
@@ -79,7 +82,31 @@ public class ResizeWidget : TemplatedControl
         set => SetValue(OrientationProperty, value);
     }
 
-    public RenderOffsetAnimator OffsetAnimator { get; } = new();
+    public double PositionOffset
+    {
+        get => _offsetAnimator.PositionOffsetAfter;
+        set => _offsetAnimator.ChangePositionOffset(value);
+    }
+
+    public void SetSizeTo(double newSize, bool animate)
+    {
+        if (animate)
+        {
+            double sizeChange = newSize - _size;
+            _size = newSize;
+            _offsetAnimator.ChangeSizeOffset(-sizeChange);
+        }
+        else
+        {
+            Size = newSize;
+        }
+    }
+
+    public void BindProperties(AvaloniaProperty<TimeSpan> durationProperty, AvaloniaProperty<Easing> easingProperty, AvaloniaProperty<Orientation> orientationProperty, Layoutable layoutableOwner)
+    {
+        this[!OrientationProperty] = layoutableOwner[!orientationProperty];
+        _offsetAnimator.BindTransitionProperties(durationProperty, easingProperty, layoutableOwner);
+    }
 
     public void ShowAccessibleModes()
     {

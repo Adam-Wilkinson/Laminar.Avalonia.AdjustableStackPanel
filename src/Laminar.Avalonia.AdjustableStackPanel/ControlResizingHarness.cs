@@ -27,16 +27,11 @@ internal class ControlResizingHarness : IResizingHarness<Control>
         => Orientation == Orientation.Horizontal ? resizable.DesiredSize.Width : resizable.DesiredSize.Height;
 
     public double GetSize(Control resizable)
-        => ResizeWidget.GetOrCreateResizer(resizable).Size;
+        => ResizeWidget.GetOrCreateResizer(resizable).TargetSize;
 
     public void SetSize(Control resizable, double size)
     {
         ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(resizable);
-        if (Animated)
-        {
-            resizer.OffsetAnimator.ChangeSizeOffset(resizer.Size - size);
-        }
-
-        resizer.Size = size;
+        resizer.SetSizeTo(size, Animated);
     }
 }

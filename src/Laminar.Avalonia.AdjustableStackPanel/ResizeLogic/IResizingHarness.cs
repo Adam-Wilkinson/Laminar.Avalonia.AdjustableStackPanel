@@ -16,7 +16,7 @@ public static class ResizingHarnessExtensions
         return resizingHarness.GetSize(resizable) - resizingHarness.GetMinimumSize(resizable);
     }
 
-    public static void Resize<T>(this IResizingHarness<T> resizingHarness, T resizable, double changeInSize)
+    public static void ChangeSize<T>(this IResizingHarness<T> resizingHarness, T resizable, double changeInSize)
     {
         resizingHarness.SetSize(resizable, resizingHarness.GetSize(resizable) + changeInSize);
     }
@@ -27,12 +27,6 @@ public static class ResizingHarnessExtensions
         double minimumSize = resizingHarness.GetMinimumSize(resizable);
         double newSize = Math.Max(minimumSize, originalSize + changeInSize);
         resizingHarness.SetSize(resizable, newSize);
-
-        if (newSize < 0)
-        {
-            throw new Exception();
-        }
-
         return newSize - originalSize;
     }
 }

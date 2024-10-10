@@ -2,29 +2,23 @@
 
 public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTransformation ResizeAmountTransformation, ResizerMode ResizerMode)
 {
-    public readonly bool HasSpaceForResize<T>(IList<T> resizeElements, IResizingHarness<T> resizeHarness, double resizeAmount, int indexOfCurrentResizer, int activeResizerIndex, Span<double> spaceBeforeResizers, ResizeFlags flags)
+    public readonly bool HasSpaceForResize<T>(IList<T> resizeElements, int indexOfCurrentResizer, ResizeInfo<T> resizeInfo)
     {
-        double spaceBeforeResizer = indexOfCurrentResizer < 0 ? 0 : spaceBeforeResizers[indexOfCurrentResizer];
-        double spaceAfterResizer = spaceBeforeResizers[^1] - spaceBeforeResizer;
-
-        double desiredResizerPositionChange = ResizeAmountTransformation(resizeAmount, activeResizerIndex < 0 ? 0 : spaceBeforeResizers[activeResizerIndex], spaceBeforeResizer, spaceBeforeResizers[^1]);
+        double desiredResizerPositionChange = TransformResize(resizeInfo, indexOfCurrentResizer);
 
         if (desiredResizerPositionChange > 0)
         {
-            return !ResizeAfterIndex(indexOfCurrentResizer, resizeElements, flags) || spaceAfterResizer > desiredResizerPositionChange;
+            return !ShouldResizeAfterIndex(indexOfCurrentResizer, resizeElements, resizeInfo.ResizeFlags) || resizeInfo.SpaceAfterResizer(indexOfCurrentResizer) > desiredResizerPositionChange;
         }
         else
         {
-            return !ResizeBeforeIndex(indexOfCurrentResizer, resizeElements, flags) || spaceBeforeResizer > -desiredResizerPositionChange;
+            return !ShouldResizeBeforeIndex(indexOfCurrentResizer, resizeElements, resizeInfo.ResizeFlags) || resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer) > -desiredResizerPositionChange;
         }
     }
 
-    public readonly double Execute<T>(IList<T> resizeElements, IResizingHarness<T> resizeHarness, double resizeAmount, int indexOfCurrentResizer, int activeResizerIndex, Span<double> spaceBeforeResizers, ResizeFlags flags)
+    public readonly double Execute<T>(IList<T> resizeElements, IResizingHarness<T> resizeHarness, int indexOfCurrentResizer, ResizeInfo<T> resizeInfo)
     {
-        double spaceBeforeResizer = indexOfCurrentResizer < 0 ? 0 : spaceBeforeResizers[indexOfCurrentResizer];
-        double spaceAfterResizer = spaceBeforeResizers[^1] - spaceBeforeResizer;
-
-        double resizerPositionChange = ResizeAmountTransformation(resizeAmount, activeResizerIndex < 0 ? 0 : spaceBeforeResizers[activeResizerIndex], spaceBeforeResizer, spaceBeforeResizers[^1]);
+        double resizerPositionChange = TransformResize(resizeInfo, indexOfCurrentResizer);
 
         if (ResizerMode.GetResizeMethods() is not (ResizeMethod methodBeforeResizer, ResizeMethod methodAfterResizer))
         {
@@ -36,34 +30,34 @@ public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTrans
 
         if (resizerPositionChange > 0)
         {
-            if (ResizeAfterIndex(indexOfCurrentResizer, resizeElements, flags))
+            if (ShouldResizeAfterIndex(indexOfCurrentResizer, resizeElements, resizeInfo.ResizeFlags))
             {
-                resizerPositionChange = -methodAfterResizer.RunMethod(elementsAfterResizer, resizeHarness, -resizerPositionChange, spaceAfterResizer);
+                resizerPositionChange = -methodAfterResizer.RunMethod(elementsAfterResizer, resizeHarness, -resizerPositionChange, resizeInfo.SpaceAfterResizer(indexOfCurrentResizer));
             }
 
-            if (ResizeBeforeIndex(indexOfCurrentResizer, resizeElements, flags))
+            if (ShouldResizeBeforeIndex(indexOfCurrentResizer, resizeElements, resizeInfo.ResizeFlags))
             {
-                methodBeforeResizer.RunMethod(elementsBeforeResizer, resizeHarness, resizerPositionChange, spaceBeforeResizer);
+                methodBeforeResizer.RunMethod(elementsBeforeResizer, resizeHarness, resizerPositionChange, resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer));
             }
         }
         else if (resizerPositionChange < 0)
         {
-            if (ResizeBeforeIndex(indexOfCurrentResizer, resizeElements, flags))
+            if (ShouldResizeBeforeIndex(indexOfCurrentResizer, resizeElements, resizeInfo.ResizeFlags))
             {
-                resizerPositionChange = methodBeforeResizer.RunMethod(elementsBeforeResizer, resizeHarness, resizerPositionChange, spaceBeforeResizer);
+                resizerPositionChange = methodBeforeResizer.RunMethod(elementsBeforeResizer, resizeHarness, resizerPositionChange, resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer));
             }
 
-            if (ResizeAfterIndex(indexOfCurrentResizer, resizeElements, flags))
+            if (ShouldResizeAfterIndex(indexOfCurrentResizer, resizeElements, resizeInfo.ResizeFlags))
             {
-                methodAfterResizer.RunMethod(elementsAfterResizer, resizeHarness, -resizerPositionChange, spaceAfterResizer);
+                methodAfterResizer.RunMethod(elementsAfterResizer, resizeHarness, -resizerPositionChange, resizeInfo.SpaceAfterResizer(indexOfCurrentResizer));
             }
         }
 
-        if (flags.HasFlag(ResizeFlags.DisableResizeAfter))
+        if (resizeInfo.ResizeFlags.HasFlag(ResizeFlags.DisableResizeAfter))
         {
             return resizerPositionChange;
         }
-        else if (flags.HasFlag(ResizeFlags.DisableResizeBefore))
+        else if (resizeInfo.ResizeFlags.HasFlag(ResizeFlags.DisableResizeBefore))
         { 
             return -resizerPositionChange;
         }
@@ -73,9 +67,12 @@ public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTrans
         }
     }
 
-    private static bool ResizeAfterIndex<T>(int indexOfCurrentResizer, IList<T> resizeElements, ResizeFlags flags)
+    private static bool ShouldResizeAfterIndex<T>(int indexOfCurrentResizer, IList<T> resizeElements, ResizeFlags flags)
         => indexOfCurrentResizer < resizeElements.Count - 1 && !flags.HasFlag(ResizeFlags.DisableResizeAfter);
 
-    private static bool ResizeBeforeIndex<T>(int indexOfCurrentResizer, IList<T> resizeElements, ResizeFlags flags)
+    private static bool ShouldResizeBeforeIndex<T>(int indexOfCurrentResizer, IList<T> resizeElements, ResizeFlags flags)
         => indexOfCurrentResizer > -1 && !flags.HasFlag(ResizeFlags.DisableResizeBefore);
+
+    private double TransformResize<T>(ResizeInfo<T> resizeInfo, int indexOfCurrentResizer)
+        => ResizeAmountTransformation(resizeInfo.ActiveResizerRequestedChange, resizeInfo.SpaceBeforeResizer(resizeInfo.ActiveResizerIndex), resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer), resizeInfo.TotalResizeSpace());
 }

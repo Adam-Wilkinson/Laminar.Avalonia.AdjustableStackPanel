@@ -39,7 +39,7 @@ public static class ResizeMethodExtensions
             int resizedControlCount = resizeElements.Length;
             foreach (T resizable in resizeElements.Items)
             {
-                resizingHarness.Resize(resizable, resizeAmount / resizedControlCount);
+                resizingHarness.ChangeSize(resizable, resizeAmount / resizedControlCount);
             }
 
             return resizeAmount;
@@ -53,7 +53,7 @@ public static class ResizeMethodExtensions
         foreach (T resizable in resizeElements.Items)
         {
             double controlResizableSpace = resizingHarness.GetSize(resizable) - resizingHarness.GetMinimumSize(resizable);
-            resizingHarness.Resize(resizable, -sizeReductionAmount * controlResizableSpace / totalResizeSpace);
+            resizingHarness.ChangeSize(resizable, -sizeReductionAmount * controlResizableSpace / totalResizeSpace);
         }
 
         return -sizeReductionAmount;
@@ -68,7 +68,7 @@ public static class ResizeMethodExtensions
             // If the size has increased, there's no need to enumerate the full list, just grow the first child
             IEnumerator<T> elementsEnumerator = resizeElements.Items.GetEnumerator();
             elementsEnumerator.MoveNext();
-            resizingHarness.Resize(elementsEnumerator.Current, resizeAmount);
+            resizingHarness.ChangeSize(elementsEnumerator.Current, resizeAmount);
             return resizeAmount;
         }
 

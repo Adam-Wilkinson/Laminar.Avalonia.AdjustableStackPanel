@@ -134,13 +134,15 @@ public class AdjustableStackPanel : StackPanel
     protected override Size ArrangeOverride(Size finalSize)
     {
         Controls children = Children;
-        double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore));
 
-        if (IsInStretchMode() && Children.Count > 0)
+        if (IsInStretchMode() && children.Count > 0)
         {
-            ResizeControlsToFillSpace(finalSize);
+            ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc double[children.Count]);
+            double freeSpace = (Orientation == Orientation.Horizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
+            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(children.CreateForwardsSlice(0), ControlResizingHarness.GetHarness(Orientation), freeSpace, resizeInfo.TotalResizeSpace());
         }
 
+        double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore));
         for (int i = 0, count = children.Count; i < count; i++)
         {
             Control child = children[i];
@@ -172,7 +174,12 @@ public class AdjustableStackPanel : StackPanel
         bool isHorizontal = Orientation == Orientation.Horizontal;
         double measuredStackHeight = 0;
         double maximumStackDesiredWidth = 0.0;
-        Span<double> resizableSpaceBeforeControls = stackalloc double[children.Count];
+        ResizeInfo<Control> resizeInfo = new(stackalloc double[Children.Count])
+        {
+            ActiveResizerRequestedChange = _currentResizeAmount.GetValueOrDefault(),
+            ActiveResizerIndex = _lastChangedResizerIndex.GetValueOrDefault(),
+            ResizeFlags = CurrentStackResizeFlags(),
+        };
 
         if (CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore))
         {
@@ -193,14 +200,15 @@ public class AdjustableStackPanel : StackPanel
             }
 
             ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(child);
+            Size oldChildSize = child.DesiredSize;
             child.Measure(availableSize);
             resizer.Measure(availableSize);
             Size childDesiredSizeOriented = isHorizontal ? new Size(child.DesiredSize.Height, child.DesiredSize.Width) : child.DesiredSize;
+            Size oldDesiredSizeOrientated = isHorizontal ? new Size(oldChildSize.Height, oldChildSize.Width) : oldChildSize;
             Size resizerDesiredSizeOriented = isHorizontal ? new Size(resizer.DesiredSize.Height, resizer.DesiredSize.Width) : resizer.DesiredSize;
 
-            if (resizer.Size < 0 && !IsInStretchMode())
+            if (oldDesiredSizeOrientated.Height == 0 && resizer.TargetSize == 0)
             {
-                resizer.Size = 0;
                 resizer.SetSizeTo(childDesiredSizeOriented.Height, IsLoaded);
             }
 
@@ -208,54 +216,18 @@ public class AdjustableStackPanel : StackPanel
             maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, childDesiredSizeOriented.Width);
 
             totalStackSize += resizer.Size + resizer.PositionOffset + resizerDesiredSizeOriented.Height;
-            resizableSpaceBeforeControls[i] = (i == 0 ? 0 : resizableSpaceBeforeControls[i - 1]) + ControlResizingHarness.GetHarness(Orientation).GetResizableSpace(child);
+            resizeInfo.AddElement(ControlResizingHarness.GetHarness(Orientation), child);
         }
 
-        if (_currentResizeAmount.HasValue && _lastChangedResizerIndex.HasValue && ResizeGesture.TryGetGesture(currentHoverResizer?.Mode, _resizerModifier, out ResizeGesture gesture))
+        if (resizeInfo.IsValid() && ResizeGesture.TryGetGesture(currentHoverResizer?.Mode, _resizerModifier, out ResizeGesture gesture))
         {
-            double stackHeightChange = gesture.Execute(Children, _lastChangedResizerIndex.Value, _currentResizeAmount.Value, resizableSpaceBeforeControls, ControlResizingHarness.GetHarness(Orientation), CurrentStackResizeFlags());
+            double stackHeightChange = gesture.Execute(Children, resizeInfo, ControlResizingHarness.GetHarness(Orientation));
             measuredStackHeight += stackHeightChange;
             totalStackSize += stackHeightChange;
         }
 
         _totalStackSize = totalStackSize;
         return isHorizontal ? new Size(measuredStackHeight, maximumStackDesiredWidth) : new Size(maximumStackDesiredWidth, measuredStackHeight);
-    }
-
-    private void ResizeControlsToFillSpace(Size availableSpace)
-    {
-        Controls children = Children;
-        Span<double> resizableSpaceBeforeControls = stackalloc double[children.Count];
-        double totalStackSize = 0;
-
-        if (CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore))
-        {
-            totalStackSize += Orientation == Orientation.Horizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height;
-        }
-
-        totalStackSize += _originalResizer.PositionOffset;
-
-        for (int i = 0, count = children.Count; i < count; i++)
-        {
-            Control child = children[i];
-
-            if (child is null || !child.IsVisible)
-            {
-                continue;
-            }
-
-            ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
-
-            double childDesiredDepth = Orientation == Orientation.Horizontal ? child.DesiredSize.Width : child.DesiredSize.Height;
-            double resizerDesiredHeightOrientated = Orientation == Orientation.Horizontal ? currentResizer.DesiredSize.Width : currentResizer.DesiredSize.Height;
-
-            double controlSize = Math.Max(currentResizer.Size, 0);
-            totalStackSize += controlSize + currentResizer.PositionOffset + resizerDesiredHeightOrientated;
-            resizableSpaceBeforeControls[i] = (i == 0 ? 0 : resizableSpaceBeforeControls[i - 1]) + ControlResizingHarness.GetHarness(Orientation).GetResizableSpace(child);
-        }
-
-        double freeSpace = (Orientation == Orientation.Horizontal ? availableSpace.Width : availableSpace.Height) - totalStackSize;
-        _totalStackSize = totalStackSize + ResizeMethod.SqueezeExpand.RunMethod(Children.CreateForwardsSlice(0), ControlResizingHarness.GetHarness(Orientation), freeSpace, resizableSpaceBeforeControls[^1]);
     }
 
     private void Children_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -293,16 +265,9 @@ public class AdjustableStackPanel : StackPanel
             VisualChildren.Add(resizer);
             resizer.BindProperties(TransitionDurationProperty, TransitionEasingProperty, OrientationProperty, this);
 
-            if (resizer.Size == 0)
+            if (resizer.Size == 0 && IsInStretchMode())
             {
-                if (IsInStretchMode())
-                {
-                    resizer.SetSizeTo(_totalStackSize / Math.Max(totalItemsBeforeChange, 1), IsLoaded);
-                }
-                else
-                {
-                    resizer.Size = -1;
-                }
+                resizer.SetSizeTo(_totalStackSize / Math.Max(totalItemsBeforeChange, 1), IsLoaded);
             }
 
             addedSize += resizer.Size + (Orientation == Orientation.Horizontal ? resizer.DesiredSize.Width : resizer.DesiredSize.Height);

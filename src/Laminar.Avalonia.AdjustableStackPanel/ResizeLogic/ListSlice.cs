@@ -1,10 +1,9 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
-public readonly struct ListSlice<T>
+public readonly struct ListSlice<T>(int excludedElementCount, IResizingHarness<T> harness)
 {
-    public ListSlice()
-    {
-    }
+    private readonly int _excludedElementCount = excludedElementCount;
+    private readonly IResizingHarness<T> _harness = harness;
 
     public required IList<T> OriginalList { private get; init; }
 
@@ -14,9 +13,7 @@ public readonly struct ListSlice<T>
 
     public required bool Reverse { private get; init; }
 
-    public int[] ExcludedIndices { get; init; } = [];
-
-    public int Length => 1 + EndIndex - StartingIndex;
+    public int Length => 1 + EndIndex - StartingIndex - _excludedElementCount;
 
     public IEnumerable<T> Items 
     {
@@ -39,7 +36,10 @@ public readonly struct ListSlice<T>
     {
         for (int i = StartingIndex; i <= EndIndex; i++)
         {
-            yield return OriginalList[i];
+            if (_harness.IsEnabled(OriginalList[i]))
+            {
+                yield return OriginalList[i];
+            }
         }
     }
 
@@ -47,14 +47,17 @@ public readonly struct ListSlice<T>
     {
         for (int i = EndIndex; i >= StartingIndex; i--)
         {
-            yield return OriginalList[i];
+            if (_harness.IsEnabled(OriginalList[i]))
+            {
+                yield return OriginalList[i];
+            }
         }
     }
 }
 
 public static class ListSliceExtensions
 {
-    public static ListSlice<T> CreateBackwardsSlice<T>(this IList<T> originalList, int index) => new()
+    public static ListSlice<T> CreateBackwardsSlice<T>(this IList<T> originalList, int index, IResizingHarness<T> harness, int excludedElementCount = 0) => new(excludedElementCount, harness)
     {
         OriginalList = originalList,
         StartingIndex = 0,
@@ -62,7 +65,7 @@ public static class ListSliceExtensions
         Reverse = true,
     };
 
-    public static ListSlice<T> CreateForwardsSlice<T>(this IList<T> originalList, int index) => new()
+    public static ListSlice<T> CreateForwardsSlice<T>(this IList<T> originalList, int index, IResizingHarness<T> harness, int excludedElementCount = 0) => new(excludedElementCount, harness)
     {
         OriginalList = originalList,
         StartingIndex = index,

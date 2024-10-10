@@ -1,36 +1,39 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
-public ref struct ResizeInfo<T>
+public readonly record struct ResizeElementInfo(double ResizableSpaceBefore, int DisabledElementsBefore);
+
+public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos)
 {
-    public readonly Span<double> SpaceBeforeResizers;
+    private readonly Span<ResizeElementInfo> _resizeElementInfos = resizeElementInfos;
+    private readonly int _resizeElementCapacity = resizeElementInfos.Length;
+    private int _resizeElementCount;
+    private int _disabledElementCount = 0;
 
-    public readonly int TotalResizeElements;
+    public double ActiveResizerRequestedChange { get; set; }
 
-    public double ActiveResizerRequestedChange;
+    public int ActiveResizerIndex { get; set; }
 
-    public int ActiveResizerIndex;
+    public ResizeFlags ResizeFlags { get; set; }
 
-    public ResizeFlags ResizeFlags;
-
-    private int _currentBuildElement = 0;
-
-    public ResizeInfo(Span<double> spaceBeforeResizers)
+    public readonly (ListSlice<T>? elementsBefore, ListSlice<T>? elementsAfter) SplitElements(IList<T> allElements, IResizingHarness<T> harness, int index)
     {
-        SpaceBeforeResizers = spaceBeforeResizers;
-        TotalResizeElements = spaceBeforeResizers.Length;
+        return (
+            index < 0 ? null : allElements.CreateBackwardsSlice(index, harness, _resizeElementInfos[index].DisabledElementsBefore),
+            index + 1 >= _resizeElementCount ? null : allElements.CreateForwardsSlice(index + 1, harness, _disabledElementCount - _resizeElementInfos[index + 1].DisabledElementsBefore)
+        );
     }
 
-    public readonly double SpaceBeforeResizer(int resizerIndex) => resizerIndex < 0 ? 0 : SpaceBeforeResizers[resizerIndex];
+    public readonly double SpaceBeforeResizer(int resizerIndex) => resizerIndex < 0 ? 0 : _resizeElementInfos[resizerIndex].ResizableSpaceBefore;
 
     public readonly double SpaceAfterResizer(int resizerIndex) => TotalResizeSpace() - SpaceBeforeResizer(resizerIndex);
 
-    public readonly double TotalResizeSpace() => SpaceBeforeResizers[^1];
+    public readonly double TotalResizeSpace() => _resizeElementInfos[^1].ResizableSpaceBefore;
 
-    public readonly bool IsValid() => ActiveResizerRequestedChange != 0 && TotalResizeElements > 0;
+    public readonly bool IsValid() => ActiveResizerRequestedChange != 0 && _resizeElementCapacity > 0;
 
-    public static ResizeInfo<T> Build(IEnumerable<T> elements, IResizingHarness<T> harness, Span<double> spaceBeforeResizers)
+    public static ResizeInfo<T> Build(IEnumerable<T> elements, IResizingHarness<T> harness, Span<ResizeElementInfo> resizeElementInfos)
     {
-        ResizeInfo<T> retVal = new(spaceBeforeResizers);
+        ResizeInfo<T> retVal = new(resizeElementInfos);
         foreach (T element in elements)
         {
             retVal.AddElement(harness, element);
@@ -41,13 +44,18 @@ public ref struct ResizeInfo<T>
 
     public void AddElement(IResizingHarness<T> harness, T resizable)
     {
-        if (_currentBuildElement >= TotalResizeElements)
+        if (_resizeElementCount >= _resizeElementCapacity)
         {
-            throw new IndexOutOfRangeException("Cannot add element to already full ResieInfo");
+            throw new IndexOutOfRangeException("ResizeInfo is at capacity");
         }
 
-        SpaceBeforeResizers[_currentBuildElement] = (_currentBuildElement == 0 ? 0 : SpaceBeforeResizers[_currentBuildElement - 1]) + harness.GetResizableSpace(resizable);
+        _resizeElementInfos[_resizeElementCount] = new()
+        {
+            ResizableSpaceBefore = (_resizeElementCount == 0 ? 0 : _resizeElementInfos[_resizeElementCount - 1].ResizableSpaceBefore) + harness.GetResizableSpace(resizable),
+            DisabledElementsBefore = _disabledElementCount,
+        };
 
-        _currentBuildElement++;
+        _disabledElementCount += harness.IsEnabled(resizable) ? 0 : 1;
+        _resizeElementCount++;
     }
 }

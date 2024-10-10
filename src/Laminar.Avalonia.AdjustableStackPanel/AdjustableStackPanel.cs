@@ -137,9 +137,9 @@ public class AdjustableStackPanel : StackPanel
 
         if (IsInStretchMode() && children.Count > 0)
         {
-            ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc double[children.Count]);
+            ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[children.Count]);
             double freeSpace = (Orientation == Orientation.Horizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
-            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(children.CreateForwardsSlice(0), ControlResizingHarness.GetHarness(Orientation), freeSpace, resizeInfo.TotalResizeSpace());
+            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(resizeInfo.SplitElements(children, ControlResizingHarness.GetHarness(Orientation), -1).elementsAfter!.Value, ControlResizingHarness.GetHarness(Orientation), freeSpace, resizeInfo.TotalResizeSpace());
         }
 
         double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore));
@@ -174,7 +174,7 @@ public class AdjustableStackPanel : StackPanel
         bool isHorizontal = Orientation == Orientation.Horizontal;
         double measuredStackHeight = 0;
         double maximumStackDesiredWidth = 0.0;
-        ResizeInfo<Control> resizeInfo = new(stackalloc double[Children.Count])
+        ResizeInfo<Control> resizeInfo = new(stackalloc ResizeElementInfo[Children.Count])
         {
             ActiveResizerRequestedChange = _currentResizeAmount.GetValueOrDefault(),
             ActiveResizerIndex = _lastChangedResizerIndex.GetValueOrDefault(),

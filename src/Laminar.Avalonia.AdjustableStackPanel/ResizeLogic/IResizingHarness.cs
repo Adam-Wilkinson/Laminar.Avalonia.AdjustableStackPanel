@@ -2,6 +2,8 @@
 
 public interface IResizingHarness<T>
 {
+    public bool IsEnabled(T resizable);
+
     public double GetMinimumSize(T resizable);
 
     public double GetSize(T resizable);

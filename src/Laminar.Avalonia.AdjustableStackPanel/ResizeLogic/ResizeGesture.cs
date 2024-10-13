@@ -166,7 +166,7 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
         }
     }
 
-    public readonly double Execute<T>(IList<T> resizeElements, ResizeInfo<T> resizeInfo, IResizingHarness<T> harness)
+    public readonly double Execute<T>(IList<T> resizeElements, ResizeInfo<T> resizeInfo)
     {
         double changeInStackSize = 0;
         resizeInfo.ResizeFlags = Flags & resizeInfo.ResizeFlags;
@@ -181,7 +181,7 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
 
         foreach ((int indexOfCurrentResize, ResizerMovement resize) in AccessibleResizes(resizeElements, resizeInfo.ActiveResizerIndex))
         {
-            changeInStackSize += resize.Execute(resizeElements, harness, indexOfCurrentResize, resizeInfo);
+            changeInStackSize += resize.Execute(resizeElements, indexOfCurrentResize, resizeInfo);
         }
 
         return changeInStackSize;

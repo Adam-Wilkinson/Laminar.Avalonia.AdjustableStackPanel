@@ -1,27 +1,24 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
-public readonly struct ListSlice<T>(int excludedElementCount, IResizingHarness<T> harness)
+public readonly struct ListSlice<T>(IResizingHarness<T> harness)
 {
-    private readonly int _excludedElementCount = excludedElementCount;
     private readonly IResizingHarness<T> _harness = harness;
 
-    public required IList<T> OriginalList { private get; init; }
+    public required IList<T> OriginalList { get; init; }
 
-    public required int StartingIndex { private get; init; }
+    public required int StartingIndex { get; init; }
 
-    public required int EndIndex { private get; init; }
+    public required int ElementCount { get; init; }
 
-    public required bool Reverse { private get; init; }
-
-    public int Length => 1 + EndIndex - StartingIndex - _excludedElementCount;
+    public required bool Reverse { get; init; }
 
     public IEnumerable<T> Items 
     {
         get
         {
-            if (StartingIndex > EndIndex)
+            if (ElementCount <= 0)
             {
-                throw new IndexOutOfRangeException();
+                return [];
             }
 
             return Reverse switch
@@ -34,42 +31,33 @@ public readonly struct ListSlice<T>(int excludedElementCount, IResizingHarness<T
 
     private IEnumerable<T> ItemsForwards()
     {
-        for (int i = StartingIndex; i <= EndIndex; i++)
+        int returnedItemCount = 0;
+        int currentIndex = StartingIndex;
+        while (returnedItemCount < ElementCount)
         {
-            if (_harness.IsEnabled(OriginalList[i]))
+            if (_harness.IsEnabled(OriginalList[currentIndex]))
             {
-                yield return OriginalList[i];
+                yield return OriginalList[currentIndex];
+                returnedItemCount++;
             }
+
+            currentIndex++;
         }
     }
 
     private IEnumerable<T> ItemsBackwards()
     {
-        for (int i = EndIndex; i >= StartingIndex; i--)
+        int returnedItemCount = 0;
+        int currentIndex = StartingIndex;
+        while (returnedItemCount < ElementCount)
         {
-            if (_harness.IsEnabled(OriginalList[i]))
+            if (_harness.IsEnabled(OriginalList[currentIndex]))
             {
-                yield return OriginalList[i];
+                yield return OriginalList[currentIndex];
+                returnedItemCount++;
             }
+
+            currentIndex--;
         }
     }
-}
-
-public static class ListSliceExtensions
-{
-    public static ListSlice<T> CreateBackwardsSlice<T>(this IList<T> originalList, int index, IResizingHarness<T> harness, int excludedElementCount = 0) => new(excludedElementCount, harness)
-    {
-        OriginalList = originalList,
-        StartingIndex = 0,
-        EndIndex = index,
-        Reverse = true,
-    };
-
-    public static ListSlice<T> CreateForwardsSlice<T>(this IList<T> originalList, int index, IResizingHarness<T> harness, int excludedElementCount = 0) => new(excludedElementCount, harness)
-    {
-        OriginalList = originalList,
-        StartingIndex = index,
-        EndIndex = originalList.Count - 1,
-        Reverse = false,
-    };
 }

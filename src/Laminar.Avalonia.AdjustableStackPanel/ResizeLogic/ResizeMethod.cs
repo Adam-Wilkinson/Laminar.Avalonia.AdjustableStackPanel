@@ -36,7 +36,7 @@ public static class ResizeMethodExtensions
         // Growing is simple, do that first
         if (resizeAmount > 0)
         {
-            int resizedControlCount = resizeElements.Length;
+            int resizedControlCount = resizeElements.ElementCount;
             foreach (T resizable in resizeElements.Items)
             {
                 resizingHarness.ChangeSize(resizable, resizeAmount / resizedControlCount);
@@ -61,7 +61,7 @@ public static class ResizeMethodExtensions
 
     private static double RunCascade<T>(ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount)
     {
-        if (resizeAmount == 0) { return 0; }
+        if (resizeAmount == 0 || resizeElements.ElementCount <= 0) { return 0; }
 
         if (resizeAmount > 0)
         {

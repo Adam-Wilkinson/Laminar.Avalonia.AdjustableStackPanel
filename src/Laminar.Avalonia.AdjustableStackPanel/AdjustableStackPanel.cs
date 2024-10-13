@@ -139,7 +139,7 @@ public class AdjustableStackPanel : StackPanel
         {
             ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[children.Count]);
             double freeSpace = (Orientation == Orientation.Horizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
-            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(resizeInfo.SplitElements(children, ControlResizingHarness.GetHarness(Orientation), -1).elementsAfter!.Value, ControlResizingHarness.GetHarness(Orientation), freeSpace, resizeInfo.TotalResizeSpace());
+            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(resizeInfo.GetElementsAfter(-1, children), ControlResizingHarness.GetHarness(Orientation), freeSpace, resizeInfo.TotalResizeSpace());
         }
 
         double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore));
@@ -174,7 +174,7 @@ public class AdjustableStackPanel : StackPanel
         bool isHorizontal = Orientation == Orientation.Horizontal;
         double measuredStackHeight = 0;
         double maximumStackDesiredWidth = 0.0;
-        ResizeInfo<Control> resizeInfo = new(stackalloc ResizeElementInfo[Children.Count])
+        ResizeInfo<Control> resizeInfo = new(stackalloc ResizeElementInfo[Children.Count], ControlResizingHarness.GetHarness(Orientation))
         {
             ActiveResizerRequestedChange = _currentResizeAmount.GetValueOrDefault(),
             ActiveResizerIndex = _lastChangedResizerIndex.GetValueOrDefault(),
@@ -216,12 +216,12 @@ public class AdjustableStackPanel : StackPanel
             maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, childDesiredSizeOriented.Width);
 
             totalStackSize += resizer.Size + resizer.PositionOffset + resizerDesiredSizeOriented.Height;
-            resizeInfo.AddElement(ControlResizingHarness.GetHarness(Orientation), child);
+            resizeInfo.AddElement(child);
         }
 
         if (resizeInfo.IsValid() && ResizeGesture.TryGetGesture(currentHoverResizer?.Mode, _resizerModifier, out ResizeGesture gesture))
         {
-            double stackHeightChange = gesture.Execute(Children, resizeInfo, ControlResizingHarness.GetHarness(Orientation));
+            double stackHeightChange = gesture.Execute(Children, resizeInfo);
             measuredStackHeight += stackHeightChange;
             totalStackSize += stackHeightChange;
         }

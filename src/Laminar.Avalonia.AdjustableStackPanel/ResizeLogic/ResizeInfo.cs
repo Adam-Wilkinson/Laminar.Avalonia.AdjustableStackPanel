@@ -2,26 +2,51 @@
 
 public readonly record struct ResizeElementInfo(double ResizableSpaceBefore, int DisabledElementsBefore);
 
-public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos)
+public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IResizingHarness<T> harness)
 {
     private readonly Span<ResizeElementInfo> _resizeElementInfos = resizeElementInfos;
     private readonly int _resizeElementCapacity = resizeElementInfos.Length;
+
     private int _resizeElementCount;
     private int _disabledElementCount = 0;
 
-    public double ActiveResizerRequestedChange { get; set; }
+    public double ActiveResizerRequestedChange { get; init; }
 
-    public int ActiveResizerIndex { get; set; }
+    public int ActiveResizerIndex { get; init; }
 
     public ResizeFlags ResizeFlags { get; set; }
 
-    public readonly (ListSlice<T>? elementsBefore, ListSlice<T>? elementsAfter) SplitElements(IList<T> allElements, IResizingHarness<T> harness, int index)
+    public IResizingHarness<T> Harness { get; } = harness;
+
+    public readonly ListSlice<T> GetElementsBefore(int index, IList<T> allElements)
+        => new(Harness)
+        {
+            OriginalList = allElements,
+            ElementCount = index + 1 - DisabledElementsBefore(index),
+            StartingIndex = index,
+            Reverse = true,
+        };
+
+    public readonly ListSlice<T> GetElementsAfter(int index, IList<T> allElements)
     {
-        return (
-            index < 0 ? null : allElements.CreateBackwardsSlice(index, harness, _resizeElementInfos[index].DisabledElementsBefore),
-            index + 1 >= _resizeElementCount ? null : allElements.CreateForwardsSlice(index + 1, harness, _disabledElementCount - _resizeElementInfos[index + 1].DisabledElementsBefore)
-        );
+        int totalElementsAfter = _resizeElementCount - (index + 1);
+        int disabledElementsAfter = _disabledElementCount - DisabledElementsBefore(index + 1);
+        int enabledElementsAfter = totalElementsAfter - disabledElementsAfter;
+
+        return new ListSlice<T>(Harness) 
+        { 
+            OriginalList = allElements, 
+            ElementCount = enabledElementsAfter, 
+            StartingIndex = index + 1, 
+            Reverse = false 
+        };
     }
+
+    public readonly int DisabledElementsBefore(int resizerIndex) => resizerIndex switch
+    {
+        < 0 => 0,
+        _ => _resizeElementInfos[Math.Min(resizerIndex, _resizeElementInfos.Length - 1)].DisabledElementsBefore,
+    };
 
     public readonly double SpaceBeforeResizer(int resizerIndex) => resizerIndex < 0 ? 0 : _resizeElementInfos[resizerIndex].ResizableSpaceBefore;
 
@@ -33,16 +58,16 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos)
 
     public static ResizeInfo<T> Build(IEnumerable<T> elements, IResizingHarness<T> harness, Span<ResizeElementInfo> resizeElementInfos)
     {
-        ResizeInfo<T> retVal = new(resizeElementInfos);
+        ResizeInfo<T> retVal = new(resizeElementInfos, harness);
         foreach (T element in elements)
         {
-            retVal.AddElement(harness, element);
+            retVal.AddElement(element);
         }
 
         return retVal;
     }
 
-    public void AddElement(IResizingHarness<T> harness, T resizable)
+    public void AddElement(T resizable)
     {
         if (_resizeElementCount >= _resizeElementCapacity)
         {
@@ -51,11 +76,11 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos)
 
         _resizeElementInfos[_resizeElementCount] = new()
         {
-            ResizableSpaceBefore = (_resizeElementCount == 0 ? 0 : _resizeElementInfos[_resizeElementCount - 1].ResizableSpaceBefore) + harness.GetResizableSpace(resizable),
+            ResizableSpaceBefore = (_resizeElementCount == 0 ? 0 : _resizeElementInfos[_resizeElementCount - 1].ResizableSpaceBefore) + (Harness.IsEnabled(resizable) ? Harness.GetResizableSpace(resizable) : 0),
             DisabledElementsBefore = _disabledElementCount,
         };
 
-        _disabledElementCount += harness.IsEnabled(resizable) ? 0 : 1;
+        _disabledElementCount += Harness.IsEnabled(resizable) ? 0 : 1;
         _resizeElementCount++;
     }
 }

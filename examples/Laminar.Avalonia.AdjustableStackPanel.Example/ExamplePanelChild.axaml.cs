@@ -8,6 +8,12 @@ namespace Laminar.Avalonia.AdjustableStackPanel.Example;
 
 public partial class ExamplePanelChild : UserControl
 {
+    public bool ResizeEnabled
+    {
+        get => ResizeWidget.GetOrCreateResizer(this).IsEnabled;
+        set => ResizeWidget.GetOrCreateResizer(this).IsEnabled = value;
+    }
+
     public ExamplePanelChild()
     {
         InitializeComponent();

@@ -25,10 +25,13 @@ internal class ControlResizingHarness : IResizingHarness<Control>
 
     public bool IsEnabled(Control resizable) => ResizeWidget.GetOrCreateResizer(resizable).IsEnabled;
 
-    public double GetMinimumSize(Control resizable) 
-        => Orientation == Orientation.Horizontal ? resizable.DesiredSize.Width : resizable.DesiredSize.Height;
+    public double GetMinimumSize(Control resizable)
+    {
+        ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(resizable);
+        return Orientation == Orientation.Horizontal ? resizer.DesiredSize.Width + resizable.DesiredSize.Width : resizer.DesiredSize.Height + resizable.DesiredSize.Height;
+    }
 
-    public double GetSize(Control resizable)
+    public double GetTargetSize(Control resizable)
         => ResizeWidget.GetOrCreateResizer(resizable).TargetSize;
 
     public void SetSize(Control resizable, double size)

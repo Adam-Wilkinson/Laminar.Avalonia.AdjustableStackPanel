@@ -20,7 +20,7 @@ public class ResizeWidget : TemplatedControl
 {
     public static readonly StyledProperty<Orientation> OrientationProperty = AvaloniaProperty.Register<ResizeWidget, Orientation>(nameof(Orientation));
 
-    public static readonly DirectProperty<ResizeWidget, double> SizeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, double>(nameof(Size), r => r.Size, (r, v) => r._size = v);
+    public static readonly DirectProperty<ResizeWidget, double> SizeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, double>(nameof(Size), r => r.Size, (r, v) => r._size = v, double.NaN);
 
     public static readonly DirectProperty<ResizeWidget, ResizerMode> ModeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, ResizerMode>(nameof(Mode), r => r._mode, (r, v) => r._mode = v);
 
@@ -34,7 +34,7 @@ public class ResizeWidget : TemplatedControl
     private static readonly FrozenDictionary<ResizerMode, string> ModePseudoClasses = ResizerModeExtensions.AllModes().ToFrozenDictionary(x => x, x => ":" + x.ToString());
     private readonly RenderOffsetAnimator _offsetAnimator = new();
     private ResizerMode _mode;
-    private double _size;
+    private double _size = double.NaN;
     private Point? _originalClickPoint = null;
 
     public event EventHandler<ResizeEventArgs> Resize

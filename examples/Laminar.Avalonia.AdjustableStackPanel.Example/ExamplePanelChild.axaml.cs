@@ -1,7 +1,9 @@
 using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Avalonia.Animation;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
 
 namespace Laminar.Avalonia.AdjustableStackPanel.Example;
@@ -47,16 +49,26 @@ public partial class ExamplePanelChild : UserControl
 
     public async void Hide()
     {
-        ResizeEnabled = false;
-        double size = ResizeWidget.GetOrCreateResizer(this).Size;
-        ResizeWidget.GetOrCreateResizer(this).SetSizeTo(0, true);
-        await Task.Delay(2000);
-        ResizeWidget.GetOrCreateResizer(this).SetSizeTo(size, true);
-        if (Parent is AdjustableStackPanel adjustableStackPanel)
+        if (Parent is not AdjustableStackPanel panel)
         {
-            await Task.Delay(adjustableStackPanel.TransitionDuration.Milliseconds);
+            return;
         }
 
+        DoubleTransition opacityTransition = new() { Property = OpacityProperty, Duration = panel.TransitionDuration, Easing = panel.TransitionEasing };
+        ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(this);
+        Transitions ??= [];
+        Transitions.Add(opacityTransition);
+        ResizeEnabled = false;
+        double size = resizer.Size;
+        resizer.SetSizeTo(0, true);
+        Opacity = 0.0;
+        await Task.Delay(2000);
+
+        Opacity = 1.0;
+        resizer.SetSizeTo(size, true);
+        await Task.Delay(panel.TransitionDuration.Milliseconds);
+
         ResizeEnabled = true;
+        Transitions.Remove(opacityTransition);
     }
 }

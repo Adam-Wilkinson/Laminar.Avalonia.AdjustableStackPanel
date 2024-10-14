@@ -14,7 +14,7 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
 
     public int ActiveResizerIndex { get; init; }
 
-    public ResizeFlags ResizeFlags { get; set; }
+    public ResizeFlags Flags { get; set; }
 
     public IResizingHarness<T> Harness { get; } = harness;
 
@@ -22,7 +22,7 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
         => new(Harness)
         {
             OriginalList = allElements,
-            ElementCount = index + 1 - DisabledElementsBefore(index),
+            ElementCount = index + 1 - DisabledElementsBefore(index + 1),
             StartingIndex = index,
             Reverse = true,
         };

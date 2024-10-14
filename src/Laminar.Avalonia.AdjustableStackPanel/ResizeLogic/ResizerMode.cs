@@ -25,8 +25,8 @@ public static class ResizerModeExtensions
     public static bool IsAccessible(this ResizerMode mode, int indexInParent, int totalChildren, ResizeFlags currentFlags) => mode switch
     {
         ResizerMode.Default => true,
-        ResizerMode.ArrowBefore => indexInParent > -1 && !(indexInParent == 0 && !currentFlags.HasFlag(ResizeFlags.DisableResizeBefore)),
-        ResizerMode.ArrowAfter => indexInParent <= totalChildren - 2 && !(indexInParent == totalChildren - 2 && !currentFlags.HasFlag(ResizeFlags.DisableResizeAfter)),
+        ResizerMode.ArrowBefore => indexInParent > -1 && !(indexInParent == 0 && !currentFlags.HasFlag(ResizeFlags.IgnoreResizeBefore)),
+        ResizerMode.ArrowAfter => indexInParent <= totalChildren - 2 && !(indexInParent == totalChildren - 2 && !currentFlags.HasFlag(ResizeFlags.IgnoreResizeAfter)),
         _ => false
     };
 }

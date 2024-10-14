@@ -47,9 +47,16 @@ public partial class ExamplePanelChild : UserControl
 
     public async void Hide()
     {
+        ResizeEnabled = false;
         double size = ResizeWidget.GetOrCreateResizer(this).Size;
         ResizeWidget.GetOrCreateResizer(this).SetSizeTo(0, true);
         await Task.Delay(2000);
         ResizeWidget.GetOrCreateResizer(this).SetSizeTo(size, true);
+        if (Parent is AdjustableStackPanel adjustableStackPanel)
+        {
+            await Task.Delay(adjustableStackPanel.TransitionDuration.Milliseconds);
+        }
+
+        ResizeEnabled = true;
     }
 }

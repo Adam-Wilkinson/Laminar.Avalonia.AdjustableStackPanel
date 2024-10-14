@@ -139,10 +139,10 @@ public class AdjustableStackPanel : StackPanel
         {
             ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[children.Count]);
             double freeSpace = (Orientation == Orientation.Horizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
-            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(resizeInfo.GetElementsAfter(-1, children), ControlResizingHarness.GetHarness(Orientation), freeSpace, resizeInfo.TotalResizeSpace());
+            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(resizeInfo.GetElementsAfter(-1, children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
         }
 
-        double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore));
+        double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeBefore));
         for (int i = 0, count = children.Count; i < count; i++)
         {
             Control child = children[i];
@@ -157,7 +157,7 @@ public class AdjustableStackPanel : StackPanel
             double controlSize = Math.Max(currentResizer.Size, 0);
             child.Arrange(OrientedArrangeRect(currentDepth, controlSize, finalSize));
             currentDepth += controlSize;
-            currentDepth += ArrangeResizer(currentResizer, currentDepth, finalSize, i < count - 1 || CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeAfter));
+            currentDepth += ArrangeResizer(currentResizer, currentDepth, finalSize, i < count - 1 || CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeAfter));
         }
 
         _currentResizeAmount = null;
@@ -178,10 +178,10 @@ public class AdjustableStackPanel : StackPanel
         {
             ActiveResizerRequestedChange = _currentResizeAmount.GetValueOrDefault(),
             ActiveResizerIndex = _lastChangedResizerIndex.GetValueOrDefault(),
-            ResizeFlags = CurrentStackResizeFlags(),
+            Flags = CurrentStackResizeFlags(),
         };
 
-        if (CurrentStackResizeFlags().HasFlag(ResizeFlags.DisableResizeBefore))
+        if (CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeBefore))
         {
             _originalResizer.Measure(availableSize);
             measuredStackHeight += isHorizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height;
@@ -307,9 +307,9 @@ public class AdjustableStackPanel : StackPanel
         {
             return HorizontalAlignment switch
             {
-                HorizontalAlignment.Left => ResizeFlags.DisableResizeAfter,
-                HorizontalAlignment.Right => ResizeFlags.DisableResizeBefore,
-                HorizontalAlignment.Center => ResizeFlags.DisableResizeAfter | ResizeFlags.DisableResizeBefore,
+                HorizontalAlignment.Left => ResizeFlags.IgnoreResizeAfter,
+                HorizontalAlignment.Right => ResizeFlags.IgnoreResizeBefore,
+                HorizontalAlignment.Center => ResizeFlags.IgnoreResizeAfter | ResizeFlags.IgnoreResizeBefore,
                 _ => ResizeFlags.None,
             };
         }
@@ -317,9 +317,9 @@ public class AdjustableStackPanel : StackPanel
         {
             return VerticalAlignment switch
             {
-                VerticalAlignment.Top => ResizeFlags.DisableResizeAfter,
-                VerticalAlignment.Bottom => ResizeFlags.DisableResizeBefore,
-                VerticalAlignment.Center => ResizeFlags.DisableResizeAfter | ResizeFlags.DisableResizeBefore,
+                VerticalAlignment.Top => ResizeFlags.IgnoreResizeAfter,
+                VerticalAlignment.Bottom => ResizeFlags.IgnoreResizeBefore,
+                VerticalAlignment.Center => ResizeFlags.IgnoreResizeAfter | ResizeFlags.IgnoreResizeBefore,
                 _ => ResizeFlags.None,
             };
         }

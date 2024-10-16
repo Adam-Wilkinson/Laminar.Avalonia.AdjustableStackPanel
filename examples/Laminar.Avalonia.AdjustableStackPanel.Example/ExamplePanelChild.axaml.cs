@@ -66,7 +66,7 @@ public partial class ExamplePanelChild : UserControl
 
         Opacity = 1.0;
         resizer.SetSizeTo(size, true);
-        await Task.Delay(panel.TransitionDuration.Milliseconds);
+        await Task.Delay((int)panel.TransitionDuration.TotalMilliseconds);
 
         ResizeEnabled = true;
         Transitions.Remove(opacityTransition);

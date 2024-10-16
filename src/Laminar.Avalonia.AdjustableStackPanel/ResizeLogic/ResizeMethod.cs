@@ -9,7 +9,7 @@ public enum ResizeMethod
 
 public static class ResizeMethodExtensions
 {
-    public static double RunMethods<T>(this Span<ResizeMethod> methods, ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace)
+    public static double RunMethods<T>(this Span<ResizeMethod> methods, ResizableElementSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace)
     {
         double successfulResizeAmount = 0;
         foreach (ResizeMethod method in methods)
@@ -24,20 +24,20 @@ public static class ResizeMethodExtensions
         return successfulResizeAmount;
     }
 
-    public static double RunMethod<T>(this ResizeMethod method, ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace) => method switch
+    public static double RunMethod<T>(this ResizeMethod method, ResizableElementSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace) => method switch
     {
         ResizeMethod.SqueezeExpand => RunSqueezeExpand(resizeElements, resizingHarness, resizeAmount, totalResizeSpace),
         ResizeMethod.Cascade => RunCascade(resizeElements, resizingHarness, resizeAmount),
         _ => 0.0,
     };
 
-    private static double RunSqueezeExpand<T>(ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace)
+    private static double RunSqueezeExpand<T>(ResizableElementSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace)
     {
         // Growing is simple, do that first
         if (resizeAmount > 0)
         {
             int resizedControlCount = resizeElements.ElementCount;
-            foreach (T resizable in resizeElements.Items)
+            foreach (T resizable in resizeElements)
             {
                 resizingHarness.ChangeSize(resizable, resizeAmount / resizedControlCount);
             }
@@ -50,7 +50,7 @@ public static class ResizeMethodExtensions
 
         if (sizeReductionAmount == 0) { return 0; }
 
-        foreach (T resizable in resizeElements.Items)
+        foreach (T resizable in resizeElements)
         {
             double controlResizableSpace = resizingHarness.GetTargetSize(resizable) - resizingHarness.GetMinimumSize(resizable);
             resizingHarness.ChangeSize(resizable, -sizeReductionAmount * controlResizableSpace / totalResizeSpace);
@@ -59,21 +59,21 @@ public static class ResizeMethodExtensions
         return -sizeReductionAmount;
     }
 
-    private static double RunCascade<T>(ListSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount)
+    private static double RunCascade<T>(ResizableElementSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount)
     {
         if (resizeAmount == 0 || resizeElements.ElementCount <= 0) { return 0; }
 
         if (resizeAmount > 0)
         {
             // If the size has increased, there's no need to enumerate the full list, just grow the first child
-            IEnumerator<T> elementsEnumerator = resizeElements.Items.GetEnumerator();
+            ResizableElementSlice<T>.Enumerator elementsEnumerator = resizeElements.GetEnumerator();
             elementsEnumerator.MoveNext();
             resizingHarness.ChangeSize(elementsEnumerator.Current, resizeAmount);
             return resizeAmount;
         }
 
         double remainingReductionAmount = -resizeAmount;
-        foreach (T resizable in resizeElements.Items)
+        foreach (T resizable in resizeElements)
         {
             double sizeDecrease = -resizingHarness.TryResize(resizable, -remainingReductionAmount);
             remainingReductionAmount -= sizeDecrease;

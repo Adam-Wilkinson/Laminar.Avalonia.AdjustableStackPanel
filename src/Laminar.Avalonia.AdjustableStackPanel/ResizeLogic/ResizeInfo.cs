@@ -18,7 +18,7 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
 
     public IResizingHarness<T> Harness { get; } = harness;
 
-    public readonly ListSlice<T> GetElementsBefore(int index, IList<T> allElements)
+    public readonly ResizableElementSlice<T> GetElementsBefore(int index, IList<T> allElements)
         => new(Harness)
         {
             OriginalList = allElements,
@@ -27,13 +27,13 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
             Reverse = true,
         };
 
-    public readonly ListSlice<T> GetElementsAfter(int index, IList<T> allElements)
+    public readonly ResizableElementSlice<T> GetElementsAfter(int index, IList<T> allElements)
     {
         int totalElementsAfter = _resizeElementCount - (index + 1);
         int disabledElementsAfter = _disabledElementCount - DisabledElementsBefore(index + 1);
         int enabledElementsAfter = totalElementsAfter - disabledElementsAfter;
 
-        return new ListSlice<T>(Harness) 
+        return new ResizableElementSlice<T>(Harness) 
         { 
             OriginalList = allElements, 
             ElementCount = enabledElementsAfter, 

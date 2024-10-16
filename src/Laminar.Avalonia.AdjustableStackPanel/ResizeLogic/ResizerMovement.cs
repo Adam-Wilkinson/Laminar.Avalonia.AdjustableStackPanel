@@ -29,8 +29,8 @@ public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTrans
             return 0;
         }
 
-        ListSlice<T> elementsBeforeResizer = resizeInfo.GetElementsBefore(indexOfCurrentResizer, resizeElements);
-        ListSlice<T> elementsAfterResizer = resizeInfo.GetElementsAfter(indexOfCurrentResizer, resizeElements);
+        ResizableElementSlice<T> elementsBeforeResizer = resizeInfo.GetElementsBefore(indexOfCurrentResizer, resizeElements);
+        ResizableElementSlice<T> elementsAfterResizer = resizeInfo.GetElementsAfter(indexOfCurrentResizer, resizeElements);
 
         if (resizerPositionChange > 0)
         {

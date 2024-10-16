@@ -92,8 +92,8 @@ public class ResizeWidget : TemplatedControl
     {
         if (animate)
         {
-            double sizeChange = newSize - _size;
-            _size = newSize;
+            double sizeChange = newSize - Size;
+            Size = newSize;
             _offsetAnimator.ChangeSizeOffset(-sizeChange);
         }
         else

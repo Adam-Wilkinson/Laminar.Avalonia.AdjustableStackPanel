@@ -58,8 +58,11 @@ public partial class ExamplePanelChild : UserControl
         ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(this);
         Transitions ??= [];
         Transitions.Add(opacityTransition);
-        ResizeEnabled = false;
         double size = resizer.Size;
+        bool isEnabled = resizer.IsEnabled;
+
+        ResizeEnabled = false;
+
         resizer.SetSizeTo(0, true);
         Opacity = 0.0;
         await Task.Delay(2000);
@@ -68,7 +71,7 @@ public partial class ExamplePanelChild : UserControl
         resizer.SetSizeTo(size, true);
         await Task.Delay((int)panel.TransitionDuration.TotalMilliseconds);
 
-        ResizeEnabled = true;
+        ResizeEnabled = isEnabled;
         Transitions.Remove(opacityTransition);
     }
 }

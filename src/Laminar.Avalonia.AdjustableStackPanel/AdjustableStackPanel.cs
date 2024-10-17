@@ -1,5 +1,4 @@
 ﻿using System.Collections.Specialized;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -122,7 +121,7 @@ public class AdjustableStackPanel : StackPanel
             resizer.Mode = null;
         }
 
-        foreach ((int currentResizerIndex, ResizerMovement resize) in ResizeGesture.GetGesture(_lastChangedResizer?.Mode, _resizerModifier).AccessibleResizes(Children, _lastChangedResizerIndex!.Value))
+        foreach ((int currentResizerIndex, ResizerMovement resize) in ResizeGesture.GetGesture(_lastChangedResizer?.Mode, _resizerModifier).AccessibleResizes(Children, _lastChangedResizerIndex!.Value, CurrentStackResizeFlags()))
         {
             ResizeWidget currentResizer = ResizerAtIndex(currentResizerIndex);
             currentResizer.ShowAccessibleModes();
@@ -143,7 +142,7 @@ public class AdjustableStackPanel : StackPanel
             _totalStackSize += new Scale().Run(resizeInfo.GetElementsAfter(-1, children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
         }
 
-        double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeBefore));
+        double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.CanMoveStackStart));
         for (int i = 0, count = children.Count; i < count; i++)
         {
             Control child = children[i];
@@ -160,7 +159,7 @@ public class AdjustableStackPanel : StackPanel
             double controlSize = Math.Max(currentResizer.Size - resizerDepth, 0);
             child.Arrange(OrientedArrangeRect(currentDepth, controlSize, finalSize));
             currentDepth += currentResizer.Size - resizerDepth;
-            currentDepth += ArrangeResizer(currentResizer, currentDepth, finalSize, i < count - 1 || CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeAfter));
+            currentDepth += ArrangeResizer(currentResizer, currentDepth, finalSize, i < count - 1 || CurrentStackResizeFlags().HasFlag(ResizeFlags.CanMoveStackEnd));
         }
 
         _currentResizeAmount = null;
@@ -185,7 +184,7 @@ public class AdjustableStackPanel : StackPanel
             Flags = CurrentStackResizeFlags(),
         };
 
-        if (CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeBefore))
+        if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanMoveStackStart))
         {
             _originalResizer.Measure(availableSize);
             measuredStackHeight += isHorizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height;
@@ -312,9 +311,9 @@ public class AdjustableStackPanel : StackPanel
         {
             return HorizontalAlignment switch
             {
-                HorizontalAlignment.Left => ResizeFlags.IgnoreResizeAfter,
-                HorizontalAlignment.Right => ResizeFlags.IgnoreResizeBefore,
-                HorizontalAlignment.Center => ResizeFlags.IgnoreResizeAfter | ResizeFlags.IgnoreResizeBefore,
+                HorizontalAlignment.Left => ResizeFlags.CanMoveStackEnd,
+                HorizontalAlignment.Right => ResizeFlags.CanMoveStackStart,
+                HorizontalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart,
                 _ => ResizeFlags.None,
             };
         }
@@ -322,9 +321,9 @@ public class AdjustableStackPanel : StackPanel
         {
             return VerticalAlignment switch
             {
-                VerticalAlignment.Top => ResizeFlags.IgnoreResizeAfter,
-                VerticalAlignment.Bottom => ResizeFlags.IgnoreResizeBefore,
-                VerticalAlignment.Center => ResizeFlags.IgnoreResizeAfter | ResizeFlags.IgnoreResizeBefore,
+                VerticalAlignment.Top => ResizeFlags.CanMoveStackEnd,
+                VerticalAlignment.Bottom => ResizeFlags.CanMoveStackStart,
+                VerticalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart,
                 _ => ResizeFlags.None,
             };
         }

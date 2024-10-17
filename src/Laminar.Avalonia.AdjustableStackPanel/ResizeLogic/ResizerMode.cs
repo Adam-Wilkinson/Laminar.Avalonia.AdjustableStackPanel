@@ -14,7 +14,7 @@ public record struct ResizerMode(
         new Cascade(),
         ":ArrowBeforeAccessible",
         ":ArrowBefore",
-        (int indexInParent, int totalChildren, ResizeFlags flags) => indexInParent > -1 && !(indexInParent == 0 && !flags.HasFlag(ResizeFlags.IgnoreResizeBefore)));
+        (int indexInParent, int totalChildren, ResizeFlags flags) => totalChildren > 1 && indexInParent > -1 && (indexInParent > 0 || flags.HasFlag(ResizeFlags.CanMoveStackStart)));
 
     public static ResizerMode Default { get; } = new(
         new Cascade(),
@@ -28,7 +28,7 @@ public record struct ResizerMode(
         new Scale(),
         ":ArrowAfterAccessible",
         ":ArrowAfter",
-        (int indexInParent, int totalChildren, ResizeFlags flags) => indexInParent <= totalChildren - 2 && !(indexInParent == totalChildren - 2 && !flags.HasFlag(ResizeFlags.IgnoreResizeAfter)));
+        (int indexInParent, int totalChildren, ResizeFlags flags) => totalChildren > 1 && indexInParent < totalChildren && (indexInParent < totalChildren - 1 || flags.HasFlag(ResizeFlags.CanMoveStackEnd)));
 
     /// <summary>
     /// The Dictionary used to check the <see cref="ResizeWidget"/> template for resize zones. Controls whos name match the key will be marked as a resize zone for the value.

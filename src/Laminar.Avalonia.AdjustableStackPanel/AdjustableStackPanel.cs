@@ -28,6 +28,12 @@ public class AdjustableStackPanel : StackPanel
         set => SetValue(TransitionEasingProperty, value);
     }
 
+    public readonly Dictionary<KeyModifiers, ResizerModifier> ResizerModifierKeys = new()
+    {
+        { KeyModifiers.Control, ResizerModifier.Move },
+        { KeyModifiers.Shift, ResizerModifier.ShrinkGrow },
+    };
+
     private double _totalStackSize = 0;
     private int? _lastChangedResizerIndex = null;
     private double? _currentResizeAmount = null;
@@ -40,7 +46,7 @@ public class AdjustableStackPanel : StackPanel
 
     static AdjustableStackPanel()
     {
-        ResizeWidget.ModeProperty.Changed.Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs<ResizerMode>>(ResizeWidgetModeChanged));
+        ResizeWidget.ModeProperty.Changed.Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs<ResizerMode?>>(ResizeWidgetModeChanged));
     }
 
     private void OnResize(object? sender, ResizeEventArgs e)
@@ -61,7 +67,7 @@ public class AdjustableStackPanel : StackPanel
         UpdateGesture();
     }
 
-    private static void ResizeWidgetModeChanged(AvaloniaPropertyChangedEventArgs<ResizerMode> e)
+    private static void ResizeWidgetModeChanged(AvaloniaPropertyChangedEventArgs<ResizerMode?> e)
     {
         if (e.Sender is not ResizeWidget resizer || resizer.GetVisualParent() is not AdjustableStackPanel adjustableStackPanel || adjustableStackPanel._modeChanging)
         {
@@ -90,12 +96,7 @@ public class AdjustableStackPanel : StackPanel
 
     private void GlobalKeyPressed(object? sender, KeyEventArgs e)
     {
-        ResizerModifier newResizerModifier = e.KeyModifiers switch
-        {
-            KeyModifiers.Control => ResizerModifier.Move,
-            KeyModifiers.Shift => ResizerModifier.ShrinkGrow,
-            _ => ResizerModifier.None,
-        };
+        ResizerModifier newResizerModifier = ResizerModifierKeys.TryGetValue(e.KeyModifiers, out ResizerModifier modifier) ? modifier : ResizerModifier.None;
 
         if (newResizerModifier != _resizerModifier || _modeChanging)
         {
@@ -118,7 +119,7 @@ public class AdjustableStackPanel : StackPanel
             }
 
             resizer.HideAccessibleModes();
-            resizer.Mode = ResizerMode.None;
+            resizer.Mode = null;
         }
 
         foreach ((int currentResizerIndex, ResizerMovement resize) in ResizeGesture.GetGesture(_lastChangedResizer?.Mode, _resizerModifier).AccessibleResizes(Children, _lastChangedResizerIndex!.Value))
@@ -139,7 +140,7 @@ public class AdjustableStackPanel : StackPanel
         {
             ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[children.Count]);
             double freeSpace = (Orientation == Orientation.Horizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
-            _totalStackSize += ResizeMethod.SqueezeExpand.RunMethod(resizeInfo.GetElementsAfter(-1, children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
+            _totalStackSize += ResizeMethod.SqueezeExpand.Run(resizeInfo.GetElementsAfter(-1, children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
         }
 
         double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeBefore));
@@ -230,7 +231,7 @@ public class AdjustableStackPanel : StackPanel
             resizeInfo.AddElement(child);
         }
 
-        if (resizeInfo.IsValid() && ResizeGesture.TryGetGesture(currentHoverResizer?.Mode, _resizerModifier, out ResizeGesture gesture))
+        if (resizeInfo.IsValid() && currentHoverResizer?.Mode is not null && ResizeGesture.TryGetGesture(currentHoverResizer.Mode.Value, _resizerModifier, out ResizeGesture gesture))
         {
             double stackHeightChange = gesture.Execute(Children, resizeInfo);
             measuredStackHeight += stackHeightChange;

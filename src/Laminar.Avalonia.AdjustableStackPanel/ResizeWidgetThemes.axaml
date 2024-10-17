@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-					xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel">
+					xmlns:asp="clr-namespace:Laminar.Avalonia.AdjustableStackPanel;assembly=Laminar.Avalonia.AdjustableStackPanel"
+					xmlns:aspl="clr-namespace:Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;assembly=Laminar.Avalonia.AdjustableStackPanel">
 	
 	<!-- Design Preview -->
 	<Design.PreviewWith>
@@ -22,7 +23,7 @@
 					<Panel Classes="PopoutResizeZone ResizeZoneAfter" 
 						   ClipToBounds="False" 
 						   Cursor="Hand" 
-						   Name="PART_ResizeZoneAfter">
+						   Name="PART_ArrowAfterZone">
 						<Rectangle Classes="ResizeZone"/>
 						<Path Classes="ArrowAfter"
 							  ClipToBounds="False"
@@ -34,7 +35,7 @@
 					<Panel Classes="PopoutResizeZone ResizeZoneBefore" 
 						   ClipToBounds="False" 
 						   Cursor="Hand" 
-						   Name="PART_ResizeZoneBefore">
+						   Name="PART_ArrowBeforeZone">
 						<Rectangle Classes="ResizeZone"/>
 						<Path Classes="ArrowBefore"
 							  ClipToBounds="False"
@@ -78,7 +79,7 @@
 			<Setter Property="Cursor" Value="SizeWestEast"/>
 		</Style>
 
-		<Style Selector="^[Mode=Default] /template/ Rectangle.Default">
+		<Style Selector="^:Default /template/ Rectangle.Default">
 			<Setter Property="Opacity" Value="1.0"/>
 		</Style>
 
@@ -98,40 +99,40 @@
 		</Style>
 
 		<!--Resize zones are semi-visible when accessible and fully opaque when hovered over-->
+		<Style Selector="^:ArrowAfterAccessible /template/ Panel.ResizeZoneAfter">
+			<Setter Property="IsEnabled" Value="True"/>
+			<Setter Property="Opacity" Value="0.6"/>
+		</Style>
+
+		<Style Selector="^:ArrowBeforeAccessible /template/ Panel.ResizeZoneBefore">
+			<Setter Property="IsEnabled" Value="True"/>
+			<Setter Property="Opacity" Value="0.6"/>
+		</Style>
+
 		<Style Selector="^:ArrowAfter /template/ Panel.ResizeZoneAfter">
-			<Setter Property="IsEnabled" Value="True"/>
-			<Setter Property="Opacity" Value="0.6"/>
-		</Style>
-
-		<Style Selector="^:ArrowBefore /template/ Panel.ResizeZoneBefore">
-			<Setter Property="IsEnabled" Value="True"/>
-			<Setter Property="Opacity" Value="0.6"/>
-		</Style>
-
-		<Style Selector="^[Mode=ArrowAfter] /template/ Panel.ResizeZoneAfter">
 			<Setter Property="IsEnabled" Value="True"/>
 			<Setter Property="Opacity" Value="1.0"/>
 		</Style>
 
-		<Style Selector="^[Mode=ArrowBefore] /template/ Panel.ResizeZoneBefore">
+		<Style Selector="^:ArrowBefore /template/ Panel.ResizeZoneBefore">
 			<Setter Property="IsEnabled" Value="True"/>
 			<Setter Property="Opacity" Value="1.0"/>
 		</Style>
 
 		<!--Setting the offset when the resize zones are expanded depending on the orientation-->
-		<Style Selector="^:ArrowBefore[Orientation=Vertical] /template/ Panel.ResizeZoneBefore">
+		<Style Selector="^:ArrowBeforeAccessible[Orientation=Vertical] /template/ Panel.ResizeZoneBefore">
 			<Setter Property="RenderTransform" Value="Translate(0px,-5px)"/>
 		</Style>
 
-		<Style Selector="^:ArrowAfter[Orientation=Vertical] /template/ Panel.ResizeZoneAfter">
+		<Style Selector="^:ArrowAfterAccessible[Orientation=Vertical] /template/ Panel.ResizeZoneAfter">
 			<Setter Property="RenderTransform" Value="Translate(0px,5px)"/>
 		</Style>
 
-		<Style Selector="^:ArrowBefore[Orientation=Horizontal] /template/ Panel.ResizeZoneBefore">
+		<Style Selector="^:ArrowBeforeAccessible[Orientation=Horizontal] /template/ Panel.ResizeZoneBefore">
 			<Setter Property="RenderTransform" Value="Translate(-5px,0px)"/>
 		</Style>
 
-		<Style Selector="^:ArrowAfter[Orientation=Horizontal] /template/ Panel.ResizeZoneAfter">
+		<Style Selector="^:ArrowAfterAccessible[Orientation=Horizontal] /template/ Panel.ResizeZoneAfter">
 			<Setter Property="RenderTransform" Value="Translate(5px,0px)"/>
 		</Style>
 
@@ -191,7 +192,7 @@
 			<Setter Property="Cursor" Value="SizeWestEast"/>
 		</Style>
 
-		<Style Selector="^[Mode=Default] /template/ Rectangle.Default">
+		<Style Selector="^:Default /template/ Rectangle.Default">
 			<Setter Property="Opacity" Value="1.0"/>
 		</Style>
 	</ControlTheme>

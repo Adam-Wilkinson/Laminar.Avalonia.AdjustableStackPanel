@@ -24,11 +24,6 @@ public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTrans
     {
         double resizerPositionChange = TransformResize(resizeInfo, indexOfCurrentResizer);
 
-        if (ResizerMode.GetResizeMethods() is not (ResizeMethod methodBeforeResizer, ResizeMethod methodAfterResizer))
-        {
-            return 0;
-        }
-
         ResizableElementSlice<T> elementsBeforeResizer = resizeInfo.GetElementsBefore(indexOfCurrentResizer, resizeElements);
         ResizableElementSlice<T> elementsAfterResizer = resizeInfo.GetElementsAfter(indexOfCurrentResizer, resizeElements);
 
@@ -36,24 +31,24 @@ public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTrans
         {
             if (!resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeAfter))
             {
-                resizerPositionChange = -methodAfterResizer.RunMethod(elementsAfterResizer, resizeInfo.Harness, -resizerPositionChange, resizeInfo.SpaceAfterResizer(indexOfCurrentResizer));
+                resizerPositionChange = -ResizerMode.MethodAfter.Run(elementsAfterResizer, resizeInfo.Harness, -resizerPositionChange, resizeInfo.SpaceAfterResizer(indexOfCurrentResizer));
             }
 
             if (!resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeBefore))
             {
-                methodBeforeResizer.RunMethod(elementsBeforeResizer, resizeInfo.Harness, resizerPositionChange, resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer));
+                ResizerMode.MethodBefore.Run(elementsBeforeResizer, resizeInfo.Harness, resizerPositionChange, resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer));
             }
         }
         else if (resizerPositionChange < 0)
         {
             if (!resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeBefore))
             {
-                resizerPositionChange = methodBeforeResizer.RunMethod(elementsBeforeResizer, resizeInfo.Harness, resizerPositionChange, resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer));
+                resizerPositionChange = ResizerMode.MethodBefore.Run(elementsBeforeResizer, resizeInfo.Harness, resizerPositionChange, resizeInfo.SpaceBeforeResizer(indexOfCurrentResizer));
             }
              
             if (!resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeAfter))
             {
-                methodAfterResizer.RunMethod(elementsAfterResizer, resizeInfo.Harness, -resizerPositionChange, resizeInfo.SpaceAfterResizer(indexOfCurrentResizer));
+                ResizerMode.MethodAfter.Run(elementsAfterResizer, resizeInfo.Harness, -resizerPositionChange, resizeInfo.SpaceAfterResizer(indexOfCurrentResizer));
             }
         }
 

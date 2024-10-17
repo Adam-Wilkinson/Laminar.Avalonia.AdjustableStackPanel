@@ -14,7 +14,7 @@ public static class ResizeMethodExtensions
         double successfulResizeAmount = 0;
         foreach (ResizeMethod method in methods)
         {
-            successfulResizeAmount += method.RunMethod(resizeElements, resizingHarness, resizeAmount - successfulResizeAmount, totalResizeSpace);
+            successfulResizeAmount += method.Run(resizeElements, resizingHarness, resizeAmount - successfulResizeAmount, totalResizeSpace);
 
             if (Math.Abs(successfulResizeAmount) >= Math.Abs(resizeAmount))
             {
@@ -24,7 +24,7 @@ public static class ResizeMethodExtensions
         return successfulResizeAmount;
     }
 
-    public static double RunMethod<T>(this ResizeMethod method, ResizableElementSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace) => method switch
+    public static double Run<T>(this ResizeMethod method, ResizableElementSlice<T> resizeElements, IResizingHarness<T> resizingHarness, double resizeAmount, double totalResizeSpace) => method switch
     {
         ResizeMethod.SqueezeExpand => RunSqueezeExpand(resizeElements, resizingHarness, resizeAmount, totalResizeSpace),
         ResizeMethod.Cascade => RunCascade(resizeElements, resizingHarness, resizeAmount),

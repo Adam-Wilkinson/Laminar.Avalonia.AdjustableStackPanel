@@ -1,28 +1,22 @@
-﻿using System.Collections.Frozen;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
-using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Rendering.Composition;
 using Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
 namespace Laminar.Avalonia.AdjustableStackPanel;
 
-[TemplatePart("PART_Move", typeof(Control))]
-[TemplatePart("PART_Shrink", typeof(Control))]
-[TemplatePart("PART_Grow", typeof(Control))]
 public class ResizeWidget : TemplatedControl
 {
     public static readonly StyledProperty<Orientation> OrientationProperty = AvaloniaProperty.Register<ResizeWidget, Orientation>(nameof(Orientation));
 
     public static readonly DirectProperty<ResizeWidget, double> SizeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, double>(nameof(Size), r => r.Size, (r, v) => r._size = v, double.NaN);
 
-    public static readonly DirectProperty<ResizeWidget, ResizerMode> ModeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, ResizerMode>(nameof(Mode), r => r._mode, (r, v) => r._mode = v);
+    public static readonly DirectProperty<ResizeWidget, ResizerMode?> ModeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, ResizerMode?>(nameof(Mode), r => r._mode, (r, v) => r._mode = v);
 
     public static readonly AttachedProperty<ResizeWidget?> ResizeWidgetProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, ResizeWidget?>("ResizeWidget");
 
@@ -31,11 +25,11 @@ public class ResizeWidget : TemplatedControl
     public static ResizeWidget? GetResizeWidget(Control control) => control.GetValue(ResizeWidgetProperty);
     public static void SetResizeWidget(Control control, ResizeWidget? resizeWidget) => control.SetValue(ResizeWidgetProperty, resizeWidget);
 
-    private static readonly FrozenDictionary<ResizerMode, string> ModePseudoClasses = ResizerModeExtensions.AllModes().ToFrozenDictionary(x => x, x => ":" + x.ToString());
     private readonly RenderOffsetAnimator _offsetAnimator = new();
-    private ResizerMode _mode;
+    private ResizerMode? _mode;
     private double _size = double.NaN;
     private Point? _originalClickPoint = null;
+    private string? _currentModePseudoclass = null;
 
     public event EventHandler<ResizeEventArgs> Resize
     {
@@ -45,6 +39,8 @@ public class ResizeWidget : TemplatedControl
 
     static ResizeWidget()
     {
+        ModeProperty.Changed.AddClassHandler<ResizeWidget>((widget, _) => widget.ModeChanged());
+
         // Load the themes manually
         Uri? nullUri = null;
         ResourceInclude themes = new(nullUri)
@@ -70,7 +66,7 @@ public class ResizeWidget : TemplatedControl
 
     public double TargetSize => _size;
 
-    public ResizerMode Mode
+    public ResizerMode? Mode
     {
         get => _mode;
         set => SetAndRaise(ModeProperty, ref _mode, value);
@@ -112,15 +108,15 @@ public class ResizeWidget : TemplatedControl
     {
         foreach (ResizerMode mode in GetAccessibleModes())
         {
-            PseudoClasses.Add(ModePseudoClasses[mode]);
+            PseudoClasses.Add(mode.IsAccessiblePseudoclass);
         }
     }
 
     public void HideAccessibleModes()
     {
-        foreach (ResizerMode mode in ResizerModeExtensions.AllModes())
+        foreach (ResizerMode mode in ResizerMode.All.Values)
         {
-            PseudoClasses.Remove(ModePseudoClasses[mode]);
+            PseudoClasses.Remove(mode.IsAccessiblePseudoclass);
         }
     }
 
@@ -147,9 +143,10 @@ public class ResizeWidget : TemplatedControl
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
-        RegisterModeSwitchOnChildHover(e, "PART_ResizeZoneBefore", ResizerMode.ArrowBefore);
-        RegisterModeSwitchOnChildHover(e, "PART_ResizeZoneAfter", ResizerMode.ArrowAfter);
-        RegisterModeSwitchOnChildHover(e, "PART_DefaultResizeZone", ResizerMode.Default);
+        foreach (var (name, mode) in ResizerMode.All) 
+        {
+            RegisterModeSwitchOnChildHover(e, name, mode);
+        }
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)
@@ -161,7 +158,7 @@ public class ResizeWidget : TemplatedControl
     protected override void OnPointerExited(PointerEventArgs e)
     {
         HideAccessibleModes();
-        Mode = ResizerMode.None;
+        Mode = null;
         base.OnPointerExited(e);
     }
 
@@ -173,7 +170,7 @@ public class ResizeWidget : TemplatedControl
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
-        if (_originalClickPoint is null)
+        if (_originalClickPoint is null || Mode is null)
         {
             return;
         }
@@ -182,7 +179,7 @@ public class ResizeWidget : TemplatedControl
         RaiseEvent(new ResizeEventArgs(
             ResizeEvent,
             Orientation == Orientation.Vertical ? deltaXY.Y : deltaXY.X,
-            Mode, 
+            Mode.Value, 
             this));
     }
 
@@ -213,5 +210,19 @@ public class ResizeWidget : TemplatedControl
         }
     }
 
-    private IEnumerable<ResizerMode> GetAccessibleModes() => ModeAccessibleCheck is null ? ResizerModeExtensions.AllModes() : ResizerModeExtensions.AllModes().Where(mode => ModeAccessibleCheck(mode));
+    private void ModeChanged()
+    {
+        if (_currentModePseudoclass is not null)
+        {
+            PseudoClasses.Remove(_currentModePseudoclass);
+        }
+
+        if (Mode is not null)
+        {
+            _currentModePseudoclass = Mode.Value.IsActivePseudoclass;
+            PseudoClasses.Add(_currentModePseudoclass);
+        }
+    }
+
+    private IEnumerable<ResizerMode> GetAccessibleModes() => ModeAccessibleCheck is null ? ResizerMode.All.Values : ResizerMode.All.Values.Where(mode => ModeAccessibleCheck(mode));
 }

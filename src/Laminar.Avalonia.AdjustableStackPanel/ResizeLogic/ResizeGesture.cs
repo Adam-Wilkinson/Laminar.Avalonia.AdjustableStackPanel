@@ -10,7 +10,7 @@ public enum ResizerModifier
 [Flags]
 public enum ResizeFlags
 {
-    None                         = 0,
+    None                        = 0,
     IgnoreResizeAfter           = 1 << 0,
     IgnoreResizeBefore          = 1 << 1,
 }
@@ -22,11 +22,11 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
     public static readonly ResizeAmountTransformation MaintainResizeAmount = (x, _, _, _) => x;
     public static readonly ResizeAmountTransformation NegateResizeAmount = (x, _, _, _) => -x;
 
-    private static readonly Dictionary<(ResizerMode mode, ResizerModifier modifier), ResizeGesture> GestureDictionary = [];
+    private static Dictionary<(ResizerMode mode, ResizerModifier modifier), ResizeGesture> GestureDictionary = [];
 
-    private static readonly ResizeGesture EmptyGesture = new() { Mode = ResizerMode.None, Modifier = ResizerModifier.None, Resizes = [], };
+    private static readonly ResizeGesture EmptyGesture = new([], new(ResizeMethod.None, ResizeMethod.None, "", "", (int _, int _, ResizeFlags flags) => false), ResizerModifier.None);
 
-    private static readonly ResizeGesture[] AllGestures =
+    private static readonly ResizeGesture[] DefaultGestures =
     [
         new ResizeGesture()
         {
@@ -129,19 +129,28 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
     ];
 
     static ResizeGesture()
+        => SetGestures(DefaultGestures);
+
+    public static void SetGestures(ResizeGesture[] gestures)
     {
-        foreach (ResizeGesture resizeGesture in AllGestures)
+        GestureDictionary = [];
+        foreach (ResizeGesture resizeGesture in gestures)
         {
             GestureDictionary.Add((resizeGesture.Mode, resizeGesture.Modifier), resizeGesture);
         }
     }
 
-    public static bool TryGetGesture(ResizerMode? mode, ResizerModifier? modifier, out ResizeGesture gesture)
-        => GestureDictionary.TryGetValue((mode ?? ResizerMode.None, modifier ?? ResizerModifier.None), out gesture);
+    public static bool TryGetGesture(ResizerMode mode, ResizerModifier? modifier, out ResizeGesture gesture)
+        => GestureDictionary.TryGetValue((mode, modifier ?? ResizerModifier.None), out gesture);
 
     public static ResizeGesture GetGesture(ResizerMode? mode, ResizerModifier? modifier)
     {
-        if (TryGetGesture(mode, modifier, out ResizeGesture gesture))
+        if (mode is null)
+        {
+            return EmptyGesture;
+        }
+
+        if (TryGetGesture(mode.Value, modifier, out ResizeGesture gesture))
         {
             return gesture;
         }

@@ -4,7 +4,24 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Adjustable Stack Panel</Title>
+    <Authors>Adam Wilkinson</Authors>
+    <Description>A stack panel which allows for the elements to be resized and adjusted by resizers</Description>
+    <Copyright>MIT License</Copyright>
+    <PackageProjectUrl>https://github.com/Adam-Wilkinson/Laminar.Avalonia.AdjustableStackPanel</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Adam-Wilkinson/Laminar.Avalonia.AdjustableStackPanel</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Avalonia; Control; Panel; StackPanel</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.1.3" />

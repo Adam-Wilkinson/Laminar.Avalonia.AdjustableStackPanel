@@ -1,8 +1,8 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
 public record struct ResizerMode(
-    ResizeMethod MethodBefore, 
-    ResizeMethod MethodAfter, 
+    IResizeMethod MethodBefore,
+    IResizeMethod MethodAfter, 
     string IsAccessiblePseudoclass,
     string IsActivePseudoclass,
     ResizerMode.IsAccessibleCheck IsAccessible)
@@ -10,22 +10,22 @@ public record struct ResizerMode(
     public delegate bool IsAccessibleCheck(int indexInParent, int totalChildren, ResizeFlags flags);
 
     public static ResizerMode ArrowBefore { get; } = new(
-        ResizeMethod.SqueezeExpand,
-        ResizeMethod.Cascade,
+        new Scale(),
+        new Cascade(),
         ":ArrowBeforeAccessible",
         ":ArrowBefore",
         (int indexInParent, int totalChildren, ResizeFlags flags) => indexInParent > -1 && !(indexInParent == 0 && !flags.HasFlag(ResizeFlags.IgnoreResizeBefore)));
 
     public static ResizerMode Default { get; } = new(
-        ResizeMethod.Cascade,
-        ResizeMethod.Cascade,
+        new Cascade(),
+        new Cascade(),
         ":DefaultAccessible",
         ":Default",
         (int _, int _, ResizeFlags _) => true);
 
     public static ResizerMode ArrowAfter { get; } = new(
-        ResizeMethod.Cascade,
-        ResizeMethod.SqueezeExpand,
+        new Cascade(),
+        new Scale(),
         ":ArrowAfterAccessible",
         ":ArrowAfter",
         (int indexInParent, int totalChildren, ResizeFlags flags) => indexInParent <= totalChildren - 2 && !(indexInParent == totalChildren - 2 && !flags.HasFlag(ResizeFlags.IgnoreResizeAfter)));

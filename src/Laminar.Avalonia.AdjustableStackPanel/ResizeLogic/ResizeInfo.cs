@@ -22,7 +22,7 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
         => new(Harness)
         {
             OriginalList = allElements,
-            ElementCount = index + 1 - DisabledElementsBefore(index + 1),
+            Length = index + 1 - DisabledElementsBefore(index + 1),
             StartingIndex = index,
             Reverse = true,
         };
@@ -36,7 +36,7 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
         return new ResizableElementSlice<T>(Harness) 
         { 
             OriginalList = allElements, 
-            ElementCount = enabledElementsAfter, 
+            Length = enabledElementsAfter, 
             StartingIndex = index + 1, 
             Reverse = false 
         };

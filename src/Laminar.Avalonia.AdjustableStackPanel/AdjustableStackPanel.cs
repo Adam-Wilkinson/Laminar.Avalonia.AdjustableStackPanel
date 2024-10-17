@@ -140,7 +140,7 @@ public class AdjustableStackPanel : StackPanel
         {
             ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[children.Count]);
             double freeSpace = (Orientation == Orientation.Horizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
-            _totalStackSize += ResizeMethod.SqueezeExpand.Run(resizeInfo.GetElementsAfter(-1, children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
+            _totalStackSize += new Scale().Run(resizeInfo.GetElementsAfter(-1, children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
         }
 
         double currentDepth = ArrangeResizer(_originalResizer, 0, finalSize, CurrentStackResizeFlags().HasFlag(ResizeFlags.IgnoreResizeBefore));

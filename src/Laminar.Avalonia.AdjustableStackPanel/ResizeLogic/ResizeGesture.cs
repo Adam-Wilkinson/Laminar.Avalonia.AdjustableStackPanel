@@ -24,7 +24,7 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
 
     private static Dictionary<(ResizerMode mode, ResizerModifier modifier), ResizeGesture> GestureDictionary = [];
 
-    private static readonly ResizeGesture EmptyGesture = new([], new(ResizeMethod.None, ResizeMethod.None, "", "", (int _, int _, ResizeFlags flags) => false), ResizerModifier.None);
+    private static readonly ResizeGesture EmptyGesture = new([], new(new NoneResizeMethod(), new NoneResizeMethod(), "", "", (int _, int _, ResizeFlags flags) => false), ResizerModifier.None);
 
     private static readonly ResizeGesture[] DefaultGestures =
     [

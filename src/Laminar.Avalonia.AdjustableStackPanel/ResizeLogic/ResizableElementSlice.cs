@@ -8,7 +8,7 @@ public readonly ref struct ResizableElementSlice<T>(IResizingHarness<T> harness)
 
     public required int StartingIndex { get; init; }
 
-    public required int ElementCount { get; init; }
+    public required int Length { get; init; }
 
     public required bool Reverse { get; init; }
 
@@ -29,7 +29,7 @@ public readonly ref struct ResizableElementSlice<T>(IResizingHarness<T> harness)
         {
             _originalList = list.OriginalList;
             _harness = list._harness;
-            _elementCount = list.ElementCount;
+            _elementCount = list.Length;
             _increment = list.Reverse ? -1 : 1;
 
             _currentIndex = list.StartingIndex - _increment;

@@ -4,9 +4,9 @@ public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTrans
 {
     public readonly bool IsValid<T>(IList<T> resizeElements, int indexOfCurrentResizer, ResizeInfo<T> resizeInfo)
     {
-        if (resizeInfo.GetElementsBefore(indexOfCurrentResizer, resizeElements).ElementCount <= 0 && !resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeBefore)) { return false; }
+        if (resizeInfo.GetElementsBefore(indexOfCurrentResizer, resizeElements).Length <= 0 && !resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeBefore)) { return false; }
 
-        if (resizeInfo.GetElementsAfter(indexOfCurrentResizer, resizeElements).ElementCount <= 0 && !resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeAfter)) { return false; }
+        if (resizeInfo.GetElementsAfter(indexOfCurrentResizer, resizeElements).Length <= 0 && !resizeInfo.Flags.HasFlag(ResizeFlags.IgnoreResizeAfter)) { return false; }
 
         double desiredResizerPositionChange = TransformResize(resizeInfo, indexOfCurrentResizer);
 

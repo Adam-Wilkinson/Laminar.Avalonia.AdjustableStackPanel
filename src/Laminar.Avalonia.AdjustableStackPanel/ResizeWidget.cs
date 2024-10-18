@@ -14,6 +14,8 @@ public class ResizeWidget : TemplatedControl
 {
     public static readonly StyledProperty<Orientation> OrientationProperty = AvaloniaProperty.Register<ResizeWidget, Orientation>(nameof(Orientation));
 
+    public static readonly StyledProperty<bool> CanChangeSizeProperty = AvaloniaProperty.Register<ResizeWidget, bool>(nameof(CanChangeSize), defaultValue: true);
+
     public static readonly DirectProperty<ResizeWidget, double> SizeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, double>(nameof(Size), r => r.Size, (r, v) => r._size = v, double.NaN);
 
     public static readonly DirectProperty<ResizeWidget, ResizerMode?> ModeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, ResizerMode?>(nameof(Mode), r => r._mode, (r, v) => r._mode = v);
@@ -76,6 +78,12 @@ public class ResizeWidget : TemplatedControl
     {
         get => GetValue(OrientationProperty);
         set => SetValue(OrientationProperty, value);
+    }
+
+    public bool CanChangeSize
+    {
+        get => GetValue(CanChangeSizeProperty);
+        set => SetValue(CanChangeSizeProperty, value);
     }
 
     public double PositionOffset

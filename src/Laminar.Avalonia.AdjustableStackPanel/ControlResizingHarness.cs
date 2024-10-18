@@ -23,7 +23,7 @@ internal class ControlResizingHarness : IResizingHarness<Control>
     public required Orientation Orientation { get; init; }
     public required bool Animated { get; init; }
 
-    public bool IsEnabled(Control resizable) => ResizeWidget.GetOrCreateResizer(resizable).IsEnabled;
+    public bool IsEnabled(Control resizable) => ResizeWidget.GetOrCreateResizer(resizable).CanChangeSize;
 
     public double GetMinimumSize(Control resizable)
     {

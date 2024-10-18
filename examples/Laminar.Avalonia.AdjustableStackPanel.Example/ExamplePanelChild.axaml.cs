@@ -10,10 +10,10 @@ namespace Laminar.Avalonia.AdjustableStackPanel.Example;
 
 public partial class ExamplePanelChild : UserControl
 {
-    public bool ResizeEnabled
+    public bool CanChangeSize
     {
-        get => ResizeWidget.GetOrCreateResizer(this).IsEnabled;
-        set => ResizeWidget.GetOrCreateResizer(this).IsEnabled = value;
+        get => ResizeWidget.GetOrCreateResizer(this).CanChangeSize;
+        set => ResizeWidget.GetOrCreateResizer(this).CanChangeSize = value;
     }
 
     public ExamplePanelChild()
@@ -59,9 +59,9 @@ public partial class ExamplePanelChild : UserControl
         Transitions ??= [];
         Transitions.Add(opacityTransition);
         double size = resizer.Size;
-        bool isEnabled = resizer.IsEnabled;
+        bool isEnabled = resizer.CanChangeSize;
 
-        ResizeEnabled = false;
+        CanChangeSize = false;
 
         resizer.SetSizeTo(0, true);
         Opacity = 0.0;
@@ -71,7 +71,7 @@ public partial class ExamplePanelChild : UserControl
         resizer.SetSizeTo(size, true);
         await Task.Delay((int)panel.TransitionDuration.TotalMilliseconds);
 
-        ResizeEnabled = isEnabled;
+        CanChangeSize = isEnabled;
         Transitions.Remove(opacityTransition);
     }
 }

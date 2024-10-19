@@ -329,7 +329,7 @@ public class AdjustableStackPanel : StackPanel
             {
                 HorizontalAlignment.Left => ResizeFlags.CanMoveStackEnd,
                 HorizontalAlignment.Right => ResizeFlags.CanMoveStackStart,
-                HorizontalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart,
+                HorizontalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart | ResizeFlags.PreferResize,
                 _ => ResizeFlags.None,
             };
         }
@@ -339,7 +339,7 @@ public class AdjustableStackPanel : StackPanel
             {
                 VerticalAlignment.Top => ResizeFlags.CanMoveStackEnd,
                 VerticalAlignment.Bottom => ResizeFlags.CanMoveStackStart,
-                VerticalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart,
+                VerticalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart | ResizeFlags.PreferResize,
                 _ => ResizeFlags.None,
             };
         }

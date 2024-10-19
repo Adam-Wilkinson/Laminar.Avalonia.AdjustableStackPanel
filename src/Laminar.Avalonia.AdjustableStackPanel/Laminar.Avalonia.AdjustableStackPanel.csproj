@@ -13,10 +13,15 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Adam-Wilkinson/Laminar.Avalonia.AdjustableStackPanel</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>Avalonia; Control; Panel; StackPanel</PackageTags>
+    <PackageTags>Avalonia; Control; Panel; StackPanel; Animated</PackageTags>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

@@ -13,7 +13,7 @@
 	<StackPanel Orientation="{Binding $parent[asp:AdjustableStackPanel].Orientation, FallbackValue=Horizontal, Converter={StaticResource InvertOrientationConverter}}"
 				VerticalAlignment="Center"
 				HorizontalAlignment="Center">
-		<CheckBox IsChecked="{Binding CanChangeSize}"/>
+		<CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding CanChangeSize}"/>
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding InsertExampleBefore}">Add Control Before</Button>
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding RemoveSelf}">Remove Control</Button>
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding Hide}">Hide Control</Button>

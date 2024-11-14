@@ -12,6 +12,8 @@ namespace Laminar.Avalonia.AdjustableStackPanel;
 
 public class ResizeWidget : TemplatedControl
 {
+    private static readonly Dictionary<ResizeWidget, Control> ResizerControls = [];
+    
     public static readonly StyledProperty<Orientation> OrientationProperty = AvaloniaProperty.Register<ResizeWidget, Orientation>(nameof(Orientation));
 
     public static readonly StyledProperty<bool> CanChangeSizeProperty = AvaloniaProperty.Register<ResizeWidget, bool>(nameof(CanChangeSize), defaultValue: true);
@@ -21,7 +23,11 @@ public class ResizeWidget : TemplatedControl
     public static readonly DirectProperty<ResizeWidget, ResizerMode?> ModeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, ResizerMode?>(nameof(Mode), r => r._mode, (r, v) => r._mode = v);
 
     public static readonly AttachedProperty<ResizeWidget?> ResizeWidgetProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, ResizeWidget?>("ResizeWidget");
-
+    
+    public static readonly AttachedProperty<double> ResizerTargetSizeProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, double>("ResizerTargetSize");
+    public static double GetResizerTargetSize(Control control) => control.GetValue(ResizerTargetSizeProperty);
+    private static void SetResizerTargetSize(Control control, double value) => GetOrCreateResizer(control).SetSizeTo(value, true);
+    
     public static readonly RoutedEvent<ResizeEventArgs> ResizeEvent = RoutedEvent.Register<ResizeWidget, ResizeEventArgs>(nameof(Resize), RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
     public static ResizeWidget? GetResizeWidget(Control control) => control.GetValue(ResizeWidgetProperty);
@@ -30,8 +36,8 @@ public class ResizeWidget : TemplatedControl
     private readonly RenderOffsetAnimator _offsetAnimator = new();
     private ResizerMode? _mode;
     private double _size = double.NaN;
-    private Point? _originalClickPoint = null;
-    private string? _currentModePseudoclass = null;
+    private Point? _lastClickPoint;
+    private string? _currentModePseudoclass;
 
     public event EventHandler<ResizeEventArgs> Resize
     {
@@ -42,7 +48,6 @@ public class ResizeWidget : TemplatedControl
     static ResizeWidget()
     {
         ModeProperty.Changed.AddClassHandler<ResizeWidget>((widget, _) => widget.ModeChanged());
-
         // Load the themes manually
         Uri? nullUri = null;
         ResourceInclude themes = new(nullUri)
@@ -58,15 +63,19 @@ public class ResizeWidget : TemplatedControl
         Resize += OnResize;
     }
 
-    public Func<ResizerMode, bool>? ModeAccessibleCheck { get; set; } = null;
+    public Func<ResizerMode, bool>? ModeAccessibleCheck { get; set; }
 
     public double Size
     {
         get => _size + _offsetAnimator.SizeOffset;
-        set => SetAndRaise(SizeProperty, ref _size, value);
+        set
+        {
+            ResizerControls[this].SetValue(ResizerTargetSizeProperty, value);
+            SetAndRaise(SizeProperty, ref _size, value);
+        }
     }
 
-    public double TargetSize => _size;
+    // public double TargetSize => GetResizerTargetSize(ResizerControls[this]);
 
     public ResizerMode? Mode
     {
@@ -96,7 +105,7 @@ public class ResizeWidget : TemplatedControl
     {
         if (animate)
         {
-            double sizeChange = newSize - Size;
+            var sizeChange = newSize - Size;
             Size = newSize;
             _offsetAnimator.ChangeSizeOffset(-sizeChange);
         }
@@ -135,7 +144,8 @@ public class ResizeWidget : TemplatedControl
             return widget;
         }
 
-        ResizeWidget newResizer = new();
+        ResizeWidget newResizer = new(); 
+        ResizerControls.Add(newResizer, control);
         SetResizeWidget(control, newResizer);
 
         return newResizer;
@@ -172,39 +182,36 @@ public class ResizeWidget : TemplatedControl
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
-        _originalClickPoint = e.GetPosition(this);
+        _lastClickPoint = e.GetPosition(this);
         e.Handled = true;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
-        if (_originalClickPoint is null || Mode is null)
+        if (_lastClickPoint is null || Mode is null)
         {
             return;
         }
 
-        Point deltaXY = e.GetPosition(this) - _originalClickPoint.Value;
+        var delta = e.GetPosition(this) - _lastClickPoint.Value;
         RaiseEvent(new ResizeEventArgs(
             ResizeEvent,
-            Orientation == Orientation.Vertical ? deltaXY.Y : deltaXY.X,
+            Orientation == Orientation.Vertical ? delta.Y : delta.X,
             Mode.Value, 
             this));
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        if (_originalClickPoint is null)
-        {
-            return;
-        }
+        if (_lastClickPoint is null) return;
 
-        _originalClickPoint = null;
+        _lastClickPoint = null;
         e.Handled = true;
     }
 
     private void RegisterModeSwitchOnChildHover(TemplateAppliedEventArgs e, string childName, ResizerMode mode)
     {
-        Control? child = e.NameScope.Find<Control>(childName);
+        var child = e.NameScope.Find<Control>(childName);
 
         if (child is not null)
         {

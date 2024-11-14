@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Avalonia;
-using Avalonia.ReactiveUI;
 
 namespace Laminar.Avalonia.AdjustableStackPanel.Example;
 
@@ -19,6 +18,5 @@ class Program
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace()
-            .UseReactiveUI();
+            .LogToTrace();
 }

@@ -8,6 +8,7 @@ using Avalonia.Layout;
 using Avalonia.Reactive;
 using Avalonia.VisualTree;
 using Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
+using Size = Avalonia.Size;
 
 namespace Laminar.Avalonia.AdjustableStackPanel;
 
@@ -58,14 +59,6 @@ public class AdjustableStackPanel : StackPanel
         InvalidateMeasure();
     }
 
-    private void OnResizerModeChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        if (e.Sender is not ResizeWidget resizer) return;
-
-        _lastChangedResizer = resizer;
-        UpdateGesture();
-    }
-
     private static void ResizeWidgetModeChanged(AvaloniaPropertyChangedEventArgs<ResizerMode?> e)
     {
         if (e.Sender is not ResizeWidget resizer || resizer.GetVisualParent() is not AdjustableStackPanel adjustableStackPanel || adjustableStackPanel._modeChanging)
@@ -95,7 +88,7 @@ public class AdjustableStackPanel : StackPanel
 
     private void GlobalKeyPressed(object? sender, KeyEventArgs e)
     {
-        ResizerModifier newResizerModifier = ResizerModifierKeys.TryGetValue(e.KeyModifiers, out ResizerModifier modifier) ? modifier : ResizerModifier.None;
+        var newResizerModifier = ResizerModifierKeys.GetValueOrDefault(e.KeyModifiers, ResizerModifier.None);
 
         if (newResizerModifier != _resizerModifier || _modeChanging)
         {
@@ -108,9 +101,9 @@ public class AdjustableStackPanel : StackPanel
     {
         _modeChanging = true;
         _lastChangedResizerIndex = _originalResizer == _lastChangedResizer ? -1 : null;
-        for (int i = 0; i < Children.Count; i++)
+        for (var i = 0; i < Children.Count; i++)
         {
-            ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(Children[i]);
+            var resizer = ResizeWidget.GetOrCreateResizer(Children[i]);
             if (resizer == _lastChangedResizer)
             {
                 _lastChangedResizerIndex = i;
@@ -121,9 +114,11 @@ public class AdjustableStackPanel : StackPanel
             resizer.Mode = null;
         }
 
-        foreach ((int currentResizerIndex, ResizerMovement resize) in ResizeGesture.GetGesture(_lastChangedResizer?.Mode, _resizerModifier).AccessibleResizes(Children, _lastChangedResizerIndex!.Value, CurrentStackResizeFlags()))
+        foreach (var (currentResizerIndex, resize) in ResizeGesture
+                     .GetGesture(_lastChangedResizer?.Mode, _resizerModifier)
+                     .AccessibleResizes(Children, _lastChangedResizerIndex!.Value, CurrentStackResizeFlags()))
         {
-            ResizeWidget currentResizer = ResizerAtIndex(currentResizerIndex);
+            var currentResizer = ResizerAtIndex(currentResizerIndex);
             currentResizer.ShowAccessibleModes();
             currentResizer.Mode = resize.ResizerMode;
         }
@@ -133,52 +128,50 @@ public class AdjustableStackPanel : StackPanel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        Controls children = Children;
-        ResizeFlags flags = CurrentStackResizeFlags();
-        bool isHorizontal = Orientation == Orientation.Horizontal;
+        var flags = CurrentStackResizeFlags();
+        var isHorizontal = Orientation == Orientation.Horizontal;
         _originalResizer.IsVisible = flags.HasFlag(ResizeFlags.CanMoveStackStart);
 
-        if (IsInStretchMode() && children.Count > 0)
+        if (IsInStretchMode() && Children.Count > 0)
         {
-            ResizeInfo<Control> resizeInfo = ResizeInfo<Control>.Build(children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[children.Count]);
-            double freeSpace = (isHorizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
-            _totalStackSize += new Scale().Run(resizeInfo.GetElementsAfter(-1, children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
+            var resizeInfo = ResizeInfo<Control>.Build(Children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[Children.Count]);
+            var freeSpace = (isHorizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
+            _totalStackSize += new Scale().Run(resizeInfo.GetElementsAfter(-1, Children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
         }
 
         double currentDepth = 0;
 
         if (flags.HasFlag(ResizeFlags.CanMoveStackStart))
         {
-            double originalResizerDepth = isHorizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height;
+            var originalResizerDepth = isHorizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height;
             _originalResizer.Arrange(OrientedArrangeRect(currentDepth, originalResizerDepth, finalSize));
             currentDepth += originalResizerDepth + _originalResizer.PositionOffset;
         }
 
-        for (int i = 0, count = children.Count; i < count; i++)
+        for (int i = 0, count = Children.Count; i < count; i++)
         {
-            Control child = children[i];
-            ResizeWidget currentResizer = ResizeWidget.GetOrCreateResizer(child);
+            var child = Children[i];
+            var currentResizer = ResizeWidget.GetOrCreateResizer(child);
 
-            if (child is null || !child.IsVisible)
+            if (!child.IsVisible)
             {
                 currentResizer.IsVisible = false;
                 continue;
             }
 
-            double resizerDepth = Orientation == Orientation.Horizontal ? currentResizer.DesiredSize.Width : currentResizer.DesiredSize.Height;
-            double spaceAfterThisResizer = flags.HasFlag(ResizeFlags.CanMoveStackEnd) ?
+            var resizerDepth = Orientation == Orientation.Horizontal ? currentResizer.DesiredSize.Width : currentResizer.DesiredSize.Height;
+            var spaceAfterThisResizer = flags.HasFlag(ResizeFlags.CanMoveStackEnd) ?
                 double.PositiveInfinity :
                 _totalStackSize - currentDepth - currentResizer.Size - currentResizer.PositionOffset;
 
-            double trueResizerControlDepth = Math.Min(resizerDepth, spaceAfterThisResizer);
-            double relativeStartOfResizer = currentResizer.Size - trueResizerControlDepth;
+            var trueResizerControlDepth = Math.Min(resizerDepth, spaceAfterThisResizer);
+            var relativeStartOfResizer = currentResizer.Size - trueResizerControlDepth;
             child.Arrange(OrientedArrangeRect(currentDepth, Math.Max(relativeStartOfResizer, 0), finalSize));
             currentDepth += relativeStartOfResizer;
             currentResizer.Arrange(OrientedArrangeRect(currentDepth, Math.Max(trueResizerControlDepth, 0), finalSize));
             currentDepth += trueResizerControlDepth + currentResizer.PositionOffset;
         }
-
-        _currentResizeAmount = null;
+        
         _sizeChangeInvalidatesMeasure = true;
         _totalStackSize = currentDepth;
         return finalSize;
@@ -187,12 +180,11 @@ public class AdjustableStackPanel : StackPanel
     protected override Size MeasureOverride(Size availableSize)
     {
         _sizeChangeInvalidatesMeasure = false;
-        ControlResizingHarness harness = ControlResizingHarness.GetHarness(Orientation);
-        Controls children = Children;
-        ResizeWidget? currentHoverResizer = _lastChangedResizer;
-        bool isHorizontal = Orientation == Orientation.Horizontal;
+        var harness = ControlResizingHarness.GetHarness(Orientation);
+        var currentHoverResizer = _lastChangedResizer;
+        var isHorizontal = Orientation == Orientation.Horizontal;
         double measuredStackHeight = 0;
-        double maximumStackDesiredWidth = 0.0;
+        double maximumStackDesiredWidth = 0;
         ResizeInfo<Control> resizeInfo = new(stackalloc ResizeElementInfo[Children.Count], harness)
         {
             ActiveResizerRequestedChange = _currentResizeAmount.GetValueOrDefault(),
@@ -207,70 +199,66 @@ public class AdjustableStackPanel : StackPanel
         }
 
         measuredStackHeight += _originalResizer.PositionOffset;
-        double totalStackSize = measuredStackHeight;
+        var totalStackSize = measuredStackHeight;
 
-        for (int i = 0, count = children.Count; i < count; ++i)
+        for (int i = 0, count = Children.Count; i < count; ++i)
         {
-            Control child = children[i];
+            var child = Children[i];
 
-            if (child is null || !child.IsVisible)
+            if (!child.IsVisible)
             {
                 continue;
             }
 
-            ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(child);
-            Size oldChildSize = child.DesiredSize;
+            var resizer = ResizeWidget.GetOrCreateResizer(child);
             child.Measure(availableSize);
             resizer.Measure(availableSize);
-            Size childDesiredSizeOriented = isHorizontal ? new Size(child.DesiredSize.Height, child.DesiredSize.Width) : child.DesiredSize;
-            Size oldDesiredSizeOrientated = isHorizontal ? new Size(oldChildSize.Height, oldChildSize.Width) : oldChildSize;
-            Size resizerDesiredSizeOriented = isHorizontal ? new Size(resizer.DesiredSize.Height, resizer.DesiredSize.Width) : resizer.DesiredSize;
 
             if (double.IsNaN(resizer.Size))
             {
                 resizer.SetSizeTo(0, false);
-                if (IsInStretchMode())
-                {
-                    resizer.SetSizeTo(_totalStackSize / Math.Max(1, children.Count - 1), IsLoaded);
-                }
-                else
-                {
-                    resizer.SetSizeTo(harness.GetMinimumSize(child), IsLoaded);
-                }
+                resizer.SetSizeTo(
+                    IsInStretchMode() 
+                        ? _totalStackSize / Math.Max(1, Children.Count - 1) 
+                        : harness.GetMinimumSize(child), 
+                    IsLoaded);
             }
 
-            measuredStackHeight += (IsInStretchMode() ? childDesiredSizeOriented.Height + resizerDesiredSizeOriented.Height : resizer.Size) + resizer.PositionOffset;
-            maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, childDesiredSizeOriented.Width);
+            measuredStackHeight += (IsInStretchMode() ? harness.GetMinimumSize(child) : resizer.Size) + resizer.PositionOffset;
+            maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, isHorizontal ? child.DesiredSize.Height : child.DesiredSize.Width);
 
             totalStackSize += resizer.Size + resizer.PositionOffset;
             resizeInfo.AddElement(child);
         }
 
-        if (resizeInfo.IsValid() && currentHoverResizer?.Mode is not null && ResizeGesture.TryGetGesture(currentHoverResizer.Mode.Value, _resizerModifier, out ResizeGesture gesture))
+        if (resizeInfo.IsValid() 
+            && currentHoverResizer?.Mode is not null 
+            && ResizeGesture.TryGetGesture(currentHoverResizer.Mode.Value, _resizerModifier, out var gesture))
         {
-            double stackHeightChange = gesture.Execute(Children, resizeInfo); 
+            var stackHeightChange = gesture.Execute(Children, resizeInfo); 
             measuredStackHeight += stackHeightChange;
             totalStackSize += stackHeightChange;
         }
 
+        _currentResizeAmount = null;
         _totalStackSize = totalStackSize;
         return isHorizontal ? new Size(measuredStackHeight, maximumStackDesiredWidth) : new Size(maximumStackDesiredWidth, measuredStackHeight);
     }
 
     private void Children_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        double spaceRemoved = e.OldItems is null ? 0 : ProcessItemsRemoved(e);
-        double spaceAdded = e.NewItems is null ? 0 : ProcessItemsAdded(e);
+        var spaceRemoved = e.OldItems is null ? 0 : ProcessItemsRemoved(e);
+        var spaceAdded = e.NewItems is null ? 0 : ProcessItemsAdded(e);
 
-        double totalOffset = 0;
-        for (int i = -1; i < Children.Count; i++)
+        double lastOffset = 0;
+        for (var i = -1; i < Children.Count; i++)
         {
-            int index = i;
-            ResizeWidget resizer = ResizerAtIndex(i);
+            var index = i;
+            var resizer = ResizerAtIndex(i);
             resizer.ModeAccessibleCheck = (mode) => ModeAccessibleCheck(mode, index);
-            double currentOffset = (i + 2 > e.OldStartingIndex ? spaceRemoved : 0) - (i + 1 > e.NewStartingIndex ? spaceAdded : 0);
-            resizer.PositionOffset += currentOffset - totalOffset;
-            totalOffset = currentOffset;
+            var currentOffset = (i + 2 > e.OldStartingIndex ? spaceRemoved : 0) - (i + 1 > e.NewStartingIndex ? spaceAdded : 0);
+            resizer.PositionOffset += currentOffset - lastOffset;
+            lastOffset = currentOffset;
         }
     }
 
@@ -279,15 +267,14 @@ public class AdjustableStackPanel : StackPanel
         _sizeChangeInvalidatesMeasure = false;
 
         double addedSize = 0;
-        int totalItemsBeforeChange = Children.Count - e.NewItems!.Count;
-        foreach (object item in e.NewItems!)
+        foreach (var item in e.NewItems!)
         {
             if (item is not Control addedControl)
             {
                 continue;
             }
 
-            ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(addedControl);
+            var resizer = ResizeWidget.GetOrCreateResizer(addedControl);
             LogicalChildren.Add(resizer);
             VisualChildren.Add(resizer);
             resizer.BindProperties(TransitionDurationProperty, TransitionEasingProperty, OrientationProperty, this);
@@ -302,14 +289,14 @@ public class AdjustableStackPanel : StackPanel
         _sizeChangeInvalidatesMeasure = false;
 
         double removedSize = 0;
-        foreach (object item in e.OldItems!)
+        foreach (var item in e.OldItems!)
         {
             if (item is not Control removedControl)
             {
                 continue;
             }
 
-            ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(removedControl);
+            var resizer = ResizeWidget.GetOrCreateResizer(removedControl);
             removedSize += resizer.Size;
             resizer.ModeAccessibleCheck = null;
             LogicalChildren.Remove(resizer);
@@ -333,33 +320,24 @@ public class AdjustableStackPanel : StackPanel
                 _ => ResizeFlags.None,
             };
         }
-        else
+
+        return VerticalAlignment switch
         {
-            return VerticalAlignment switch
-            {
-                VerticalAlignment.Top => ResizeFlags.CanMoveStackEnd,
-                VerticalAlignment.Bottom => ResizeFlags.CanMoveStackStart,
-                VerticalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart | ResizeFlags.PreferResize,
-                _ => ResizeFlags.None,
-            };
-        }
+            VerticalAlignment.Top => ResizeFlags.CanMoveStackEnd,
+            VerticalAlignment.Bottom => ResizeFlags.CanMoveStackStart,
+            VerticalAlignment.Center => ResizeFlags.CanMoveStackEnd | ResizeFlags.CanMoveStackStart | ResizeFlags.PreferResize,
+            _ => ResizeFlags.None,
+        };
     }
 
     private bool IsInStretchMode()
         => Orientation == Orientation.Horizontal ? HorizontalAlignment == HorizontalAlignment.Stretch : VerticalAlignment == VerticalAlignment.Stretch;
 
-    private ResizeWidget ResizerAtIndex(int index)
-    {
-        if (index == -1)
-        {
-            return _originalResizer;
-        }
+    private ResizeWidget ResizerAtIndex(int index) 
+        => index == -1 ? _originalResizer : ResizeWidget.GetOrCreateResizer(Children[index]);
 
-        return ResizeWidget.GetOrCreateResizer(Children[index]);
-    }
-
-    private Rect OrientedArrangeRect(double depthStart, double depthSize, Size finalSize)
-    {
-        return Orientation == Orientation.Horizontal ? new Rect(depthStart, 0, depthSize, finalSize.Height) : new Rect(0, depthStart, finalSize.Width, depthSize);
-    }
+    private Rect OrientedArrangeRect(double depthStart, double depthSize, Size finalSize) 
+        => Orientation == Orientation.Horizontal 
+            ? new Rect(depthStart, 0, depthSize, finalSize.Height) 
+            : new Rect(0, depthStart, finalSize.Width, depthSize);
 }

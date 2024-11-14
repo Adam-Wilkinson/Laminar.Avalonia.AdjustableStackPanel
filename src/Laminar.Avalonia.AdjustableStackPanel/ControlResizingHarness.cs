@@ -32,7 +32,7 @@ internal class ControlResizingHarness : IResizingHarness<Control>
     }
 
     public double GetTargetSize(Control resizable)
-        => ResizeWidget.GetOrCreateResizer(resizable).TargetSize;
+        => ResizeWidget.GetResizerTargetSize(resizable);
 
     public void SetSize(Control resizable, double size)
         => ResizeWidget.GetOrCreateResizer(resizable).SetSizeTo(size, Animated);

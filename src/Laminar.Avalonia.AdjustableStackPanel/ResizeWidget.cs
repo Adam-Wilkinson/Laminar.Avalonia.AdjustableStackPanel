@@ -26,7 +26,7 @@ public class ResizeWidget : TemplatedControl
     
     public static readonly AttachedProperty<double> ResizerTargetSizeProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, double>("ResizerTargetSize");
     public static double GetResizerTargetSize(Control control) => control.GetValue(ResizerTargetSizeProperty);
-    private static void SetResizerTargetSize(Control control, double value) => GetOrCreateResizer(control).SetSizeTo(value, true);
+    public static void SetResizerTargetSize(Control control, double value) => GetOrCreateResizer(control).SetSizeTo(value, true);
     
     public static readonly RoutedEvent<ResizeEventArgs> ResizeEvent = RoutedEvent.Register<ResizeWidget, ResizeEventArgs>(nameof(Resize), RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
 
@@ -103,6 +103,8 @@ public class ResizeWidget : TemplatedControl
 
     public void SetSizeTo(double newSize, bool animate)
     {
+        if (double.IsNaN(Size)) animate = false;
+        
         if (animate)
         {
             var sizeChange = newSize - Size;

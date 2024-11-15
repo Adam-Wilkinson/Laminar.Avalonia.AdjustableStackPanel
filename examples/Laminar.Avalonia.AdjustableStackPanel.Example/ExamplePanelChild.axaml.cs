@@ -74,4 +74,9 @@ public partial class ExamplePanelChild : UserControl
         CanChangeSize = isEnabled;
         Transitions.Remove(opacityTransition);
     }
+
+    public void SetSizeTo400()
+    {
+        ResizeWidget.SetResizerTargetSize(this, 400);
+    }
 }

@@ -48,14 +48,14 @@
 						ValueChanged="AnimationDurationChanged"/>
 			</StackPanel>
 		</Border>
-		<asp:AdjustableStackPanel Name="AdjustableStackPanel"
+		<asp:AdjustableStackPanel Name="AdjustableStackPanelExample"
 								  TransitionDuration="0:0:0.5" 
 								  TransitionEasing="QuinticEaseOut"
 								  VerticalAlignment="Top"
 								  HorizontalAlignment="Stretch"
 								  Background="#11999999"
 								  Orientation="Vertical">
-			<local:ExamplePanelChild/>
+			<local:ExamplePanelChild asp:ResizeWidget.ResizerTargetSize="400"/>
 
 			<asp:AdjustableStackPanel.Styles>
 				<Style Selector="asp|ResizeWidget">
@@ -65,7 +65,7 @@
 			
 		</asp:AdjustableStackPanel>
 	</DockPanel>
-
+ 
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.ThemeDictionaries>

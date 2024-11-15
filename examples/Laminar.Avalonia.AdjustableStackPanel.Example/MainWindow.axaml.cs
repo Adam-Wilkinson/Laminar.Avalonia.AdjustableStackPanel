@@ -13,18 +13,18 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         horizontalAlignmentSelector.ItemsSource = (HorizontalAlignment[])typeof(HorizontalAlignment).GetEnumValues();
-        horizontalAlignmentSelector.SelectedItem = AdjustableStackPanel.HorizontalAlignment;
+        horizontalAlignmentSelector.SelectedItem = AdjustableStackPanelExample.HorizontalAlignment;
 
         verticalAlignmentSelector.ItemsSource = (VerticalAlignment[])typeof(VerticalAlignment).GetEnumValues();
-        verticalAlignmentSelector.SelectedItem = AdjustableStackPanel.VerticalAlignment;
+        verticalAlignmentSelector.SelectedItem = AdjustableStackPanelExample.VerticalAlignment;
 
         orientationSelector.ItemsSource = (Orientation[])typeof(Orientation).GetEnumValues();
-        orientationSelector.SelectedItem = AdjustableStackPanel.Orientation;
-        animationDurationSelector.Value = AdjustableStackPanel.TransitionDuration.TotalMilliseconds;
+        orientationSelector.SelectedItem = AdjustableStackPanelExample.Orientation;
+        animationDurationSelector.Value = AdjustableStackPanelExample.TransitionDuration.TotalMilliseconds;
     }
 
     private void AnimationDurationChanged(object? sender, RangeBaseValueChangedEventArgs e)
     {
-        AdjustableStackPanel.TransitionDuration = TimeSpan.FromMilliseconds(e.NewValue);
+        AdjustableStackPanelExample.TransitionDuration = TimeSpan.FromMilliseconds(e.NewValue);
     }
 }

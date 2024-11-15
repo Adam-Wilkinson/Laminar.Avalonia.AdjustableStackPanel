@@ -15,6 +15,10 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>Avalonia; Control; Panel; StackPanel; Animated</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Version>1.1.0</Version>
+    <PackageReleaseNotes>- Added a ResizerTargetSize attached property for data binding
+- Fixed bugs when two measure passes occur before an arrange pass</PackageReleaseNotes>
+    <LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

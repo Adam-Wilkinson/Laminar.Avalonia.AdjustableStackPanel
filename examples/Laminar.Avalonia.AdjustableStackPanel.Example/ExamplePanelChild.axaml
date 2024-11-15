@@ -18,6 +18,7 @@
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding RemoveSelf}">Remove Control</Button>
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding Hide}">Hide Control</Button>
 		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding InsertExampleAfter}">Add Control After</Button>
+		<Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding SetSizeTo400}">Set size to 400</Button>
 		<TextBlock Margin="5" Text="{Binding $parent[UserControl].(asp:ResizeWidget.ResizerTargetSize), StringFormat='Target Size: {0:0.00}'}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 	</StackPanel>
 </UserControl>

@@ -11,24 +11,24 @@
 		<Border Background="{DynamicResource SettingsMenuBrush}" Name="SettingsMenu" DockPanel.Dock="Left">
 			<StackPanel Margin="15" Orientation="Vertical">
 				<TextBlock Margin="0,0,0,8">Horizontal Alignment:</TextBlock>
-				<ComboBox Name="horizontalAlignmentSelector"
+				<ComboBox Name="HorizontalAlignmentSelector"
 						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
 						  SelectedIndex="0"
-						  SelectedItem="{Binding #AdjustableStackPanel.HorizontalAlignment, Mode=TwoWay}"/>
+						  SelectedItem="{Binding #AdjustableStackPanelExample.HorizontalAlignment, Mode=TwoWay}"/>
 				<TextBlock Margin="0,15,0,8">Vertical Alignment:</TextBlock>
-				<ComboBox Name="verticalAlignmentSelector"
+				<ComboBox Name="VerticalAlignmentSelector"
 						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-						  SelectedItem="{Binding #AdjustableStackPanel.VerticalAlignment, Mode=TwoWay}"
+						  SelectedItem="{Binding #AdjustableStackPanelExample.VerticalAlignment, Mode=TwoWay}"
 						  SelectedIndex="0"/>
 				<TextBlock Margin="0,15,0,8">Orientation:</TextBlock>
-				<ComboBox Name="orientationSelector"
+				<ComboBox Name="OrientationSelector"
 						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-						  SelectedItem="{Binding #AdjustableStackPanel.Orientation, Mode=TwoWay}"
+						  SelectedItem="{Binding #AdjustableStackPanelExample.Orientation, Mode=TwoWay}"
 						  SelectedIndex="0"/>
 				<TextBlock Margin="0,15,0,8"
 						   ToolTip.Tip="This is not working due to what I think is an Avalonia bug. The themes are working but they do not dynamically update"
 						   ToolTip.ShowDelay="0">Resize Widget Theme:</TextBlock>
-				<ComboBox Name="themeSelector"
+				<ComboBox Name="ThemeSelector"
 						  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
 						  ToolTip.Tip="This is not working due to what I think is an Avalonia bug. The themes are working but they do not dynamically update"
 						  ToolTip.ShowDelay="0"
@@ -37,12 +37,9 @@
 					<ComboBoxItem Tag="{StaticResource Invisible}" Content="Invisible"/>
 					<ComboBoxItem Tag="{StaticResource Slim}" Content="Slim"/>
 				</ComboBox>
-				<StackPanel Margin="0,15,0,-5" Orientation="Horizontal">
-					<TextBlock Margin="0,0,5,0">Animation Duration:</TextBlock>
-					<TextBlock Text="{Binding #animationDurationSelector.Value}"/>
-					<TextBlock Text="ms"/>
-				</StackPanel>
-				<Slider Name="animationDurationSelector"
+				<TextBlock Margin="0,15,0,-5" 
+				           Text="{Binding #AnimationDurationSelector.Value, StringFormat='Animation Duration: {0}ms'}"/>
+				<Slider Name="AnimationDurationSelector"
 					    Minimum="0" Maximum="5000" SmallChange="500" 
 						TickFrequency="500" TickPlacement="BottomRight" IsSnapToTickEnabled="True"
 						ValueChanged="AnimationDurationChanged"/>
@@ -55,11 +52,11 @@
 								  HorizontalAlignment="Stretch"
 								  Background="#11999999"
 								  Orientation="Vertical">
-			<local:ExamplePanelChild asp:ResizeWidget.ResizerTargetSize="400"/>
+			<local:ExamplePanelChild/>
 
 			<asp:AdjustableStackPanel.Styles>
 				<Style Selector="asp|ResizeWidget">
-					<Setter Property="Theme" Value="{Binding #themeSelector.SelectedItem.Tag}"/>
+					<Setter Property="Theme" Value="{Binding #ThemeSelector.SelectedItem.Tag}"/>
 				</Style>
 			</asp:AdjustableStackPanel.Styles>
 			

@@ -12,15 +12,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        horizontalAlignmentSelector.ItemsSource = (HorizontalAlignment[])typeof(HorizontalAlignment).GetEnumValues();
-        horizontalAlignmentSelector.SelectedItem = AdjustableStackPanelExample.HorizontalAlignment;
+        HorizontalAlignmentSelector.ItemsSource = (HorizontalAlignment[])typeof(HorizontalAlignment).GetEnumValues();
+        HorizontalAlignmentSelector.SelectedItem = AdjustableStackPanelExample.HorizontalAlignment;
 
-        verticalAlignmentSelector.ItemsSource = (VerticalAlignment[])typeof(VerticalAlignment).GetEnumValues();
-        verticalAlignmentSelector.SelectedItem = AdjustableStackPanelExample.VerticalAlignment;
+        VerticalAlignmentSelector.ItemsSource = (VerticalAlignment[])typeof(VerticalAlignment).GetEnumValues();
+        VerticalAlignmentSelector.SelectedItem = AdjustableStackPanelExample.VerticalAlignment;
 
-        orientationSelector.ItemsSource = (Orientation[])typeof(Orientation).GetEnumValues();
-        orientationSelector.SelectedItem = AdjustableStackPanelExample.Orientation;
-        animationDurationSelector.Value = AdjustableStackPanelExample.TransitionDuration.TotalMilliseconds;
+        OrientationSelector.ItemsSource = (Orientation[])typeof(Orientation).GetEnumValues();
+        OrientationSelector.SelectedItem = AdjustableStackPanelExample.Orientation;
+        AnimationDurationSelector.Value = AdjustableStackPanelExample.TransitionDuration.TotalMilliseconds;
     }
 
     private void AnimationDurationChanged(object? sender, RangeBaseValueChangedEventArgs e)

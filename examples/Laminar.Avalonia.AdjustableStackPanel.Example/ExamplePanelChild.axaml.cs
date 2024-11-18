@@ -16,6 +16,8 @@ public partial class ExamplePanelChild : UserControl
         set => ResizeWidget.GetOrCreateResizer(this).CanChangeSize = value;
     }
 
+    public double ResizerTargetSize { get; set; } = 250;
+
     public ExamplePanelChild()
     {
         InitializeComponent();
@@ -58,17 +60,17 @@ public partial class ExamplePanelChild : UserControl
         ResizeWidget resizer = ResizeWidget.GetOrCreateResizer(this);
         Transitions ??= [];
         Transitions.Add(opacityTransition);
-        double size = resizer.Size;
-        bool isEnabled = resizer.CanChangeSize;
+        double size = ResizeWidget.GetTargetSize(this);
+        bool isEnabled = ResizeWidget.GetOrCreateResizer(resizer).CanChangeSize;
 
         CanChangeSize = false;
 
-        resizer.SetSizeTo(0, true);
+        ResizeWidget.SetTargetSize(this, 0);
         Opacity = 0.0;
         await Task.Delay(2000);
 
         Opacity = 1.0;
-        resizer.SetSizeTo(size, true);
+        ResizeWidget.SetTargetSize(this, size);
         await Task.Delay((int)panel.TransitionDuration.TotalMilliseconds);
 
         CanChangeSize = isEnabled;
@@ -77,6 +79,6 @@ public partial class ExamplePanelChild : UserControl
 
     public void SetSizeTo400()
     {
-        ResizeWidget.SetResizerTargetSize(this, 400);
+        ResizeWidget.SetTargetSize(this, 400);
     }
 }

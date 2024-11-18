@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Diagnostics;
+using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -6,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Reactive;
 using Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
 namespace Laminar.Avalonia.AdjustableStackPanel;
@@ -18,26 +20,27 @@ public class ResizeWidget : TemplatedControl
 
     public static readonly StyledProperty<bool> CanChangeSizeProperty = AvaloniaProperty.Register<ResizeWidget, bool>(nameof(CanChangeSize), defaultValue: true);
 
-    public static readonly DirectProperty<ResizeWidget, double> SizeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, double>(nameof(Size), r => r.Size, (r, v) => r._size = v, double.NaN);
-
     public static readonly DirectProperty<ResizeWidget, ResizerMode?> ModeProperty = AvaloniaProperty.RegisterDirect<ResizeWidget, ResizerMode?>(nameof(Mode), r => r._mode, (r, v) => r._mode = v);
 
     public static readonly AttachedProperty<ResizeWidget?> ResizeWidgetProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, ResizeWidget?>("ResizeWidget");
     
-    public static readonly AttachedProperty<double> ResizerTargetSizeProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, double>("ResizerTargetSize");
-    public static double GetResizerTargetSize(Control control) => control.GetValue(ResizerTargetSizeProperty);
-    public static void SetResizerTargetSize(Control control, double value) => GetOrCreateResizer(control).SetSizeTo(value, true);
-    
-    public static readonly RoutedEvent<ResizeEventArgs> ResizeEvent = RoutedEvent.Register<ResizeWidget, ResizeEventArgs>(nameof(Resize), RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
+    public static readonly AttachedProperty<double> TargetSizeProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, double>("TargetSize", defaultValue: double.NaN);
+    public static double GetTargetSize(Control control) => control.GetValue(TargetSizeProperty);
+    public static void SetTargetSize(Control control, double value) => control.SetValue(TargetSizeProperty, value);
 
+    public static readonly AttachedProperty<double> AnimatedSizeProperty = AvaloniaProperty.RegisterAttached<ResizeWidget, Control, double>("AnimatedSize", defaultValue: double.NaN);
+    public static double GetAnimatedSize(Control control) => control.GetValue(AnimatedSizeProperty);
+    public static void SetAnimatedSize(Control control, double value) => control.SetValue(AnimatedSizeProperty, value);
+
+    public static readonly RoutedEvent<ResizeEventArgs> ResizeEvent = RoutedEvent.Register<ResizeWidget, ResizeEventArgs>(nameof(Resize), RoutingStrategies.Tunnel | RoutingStrategies.Bubble);
     public static ResizeWidget? GetResizeWidget(Control control) => control.GetValue(ResizeWidgetProperty);
     public static void SetResizeWidget(Control control, ResizeWidget? resizeWidget) => control.SetValue(ResizeWidgetProperty, resizeWidget);
 
     private readonly RenderOffsetAnimator _offsetAnimator = new();
     private ResizerMode? _mode;
-    private double _size = double.NaN;
     private Point? _lastClickPoint;
     private string? _currentModePseudoclass;
+    private bool _sizeChanging = false;
 
     public event EventHandler<ResizeEventArgs> Resize
     {
@@ -48,6 +51,8 @@ public class ResizeWidget : TemplatedControl
     static ResizeWidget()
     {
         ModeProperty.Changed.AddClassHandler<ResizeWidget>((widget, _) => widget.ModeChanged());
+        TargetSizeProperty.Changed.AddClassHandler<Control>((control, e) => GetOrCreateResizer(control).TargetSizeChanged(e));
+        AnimatedSizeProperty.Changed.AddClassHandler<Control>((control, e) => GetOrCreateResizer(control).AnimatedSizeChanged(e));
         // Load the themes manually
         Uri? nullUri = null;
         ResourceInclude themes = new(nullUri)
@@ -61,21 +66,23 @@ public class ResizeWidget : TemplatedControl
     public ResizeWidget()
     {
         Resize += OnResize;
+        _offsetAnimator.GetPropertyChangedObservable(RenderOffsetAnimator.SizeOffsetProperty).Subscribe(
+            new AnonymousObserver<AvaloniaPropertyChangedEventArgs>(SizeOffsetChanged));
     }
 
     public Func<ResizerMode, bool>? ModeAccessibleCheck { get; set; }
 
-    public double Size
+    public double AnimatedSize
     {
-        get => _size + _offsetAnimator.SizeOffset;
-        set
-        {
-            ResizerControls[this].SetValue(ResizerTargetSizeProperty, value);
-            SetAndRaise(SizeProperty, ref _size, value);
-        }
+        get => GetAnimatedSize(ResizerControls[this]);
+        set => SetAnimatedSize(ResizerControls[this], value);
     }
 
-    // public double TargetSize => GetResizerTargetSize(ResizerControls[this]);
+    public double TargetSize
+    {
+        get => GetTargetSize(ResizerControls[this]);
+        set => SetTargetSize(ResizerControls[this], value);
+    }
 
     public ResizerMode? Mode
     {
@@ -101,19 +108,44 @@ public class ResizeWidget : TemplatedControl
         set => _offsetAnimator.ChangePositionOffset(value);
     }
 
+    
+    private void AnimatedSizeChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is not double newAnimatedSize || _sizeChanging) return;
+
+        _sizeChanging = true;
+        TargetSize = newAnimatedSize;
+        _sizeChanging = false;
+    }
+
+    private void TargetSizeChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is not double newTargetSize || e.OldValue is not double oldTargetSize || _sizeChanging) return;
+        
+        Debug.WriteLine($"The target size has been changed, the animator is currently at {AnimatedSize}");
+        _sizeChanging = true;
+        _offsetAnimator.ChangeSizeOffset((double.IsNaN(oldTargetSize) ? 0 : oldTargetSize) - newTargetSize);
+        _sizeChanging = false;
+    }
+    
+    private void SizeOffsetChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is not double || _sizeChanging) return;
+
+        _sizeChanging = true;
+        AnimatedSize = TargetSize + _offsetAnimator.SizeOffset;
+        _sizeChanging = false;
+    }
+    
     public void SetSizeTo(double newSize, bool animate)
     {
-        if (double.IsNaN(Size)) animate = false;
-        
         if (animate)
         {
-            var sizeChange = newSize - Size;
-            Size = newSize;
-            _offsetAnimator.ChangeSizeOffset(-sizeChange);
+            TargetSize = newSize;
         }
         else
         {
-            Size = newSize;
+            AnimatedSize = newSize;
         }
     }
 
@@ -125,7 +157,7 @@ public class ResizeWidget : TemplatedControl
 
     public void ShowAccessibleModes()
     {
-        foreach (ResizerMode mode in GetAccessibleModes())
+        foreach (var mode in GetAccessibleModes())
         {
             PseudoClasses.Add(mode.IsAccessiblePseudoclass);
         }
@@ -133,20 +165,25 @@ public class ResizeWidget : TemplatedControl
 
     public void HideAccessibleModes()
     {
-        foreach (ResizerMode mode in ResizerMode.All.Values)
+        foreach (var mode in ResizerMode.All.Values)
         {
             PseudoClasses.Remove(mode.IsAccessiblePseudoclass);
         }
     }
 
-    public static ResizeWidget GetOrCreateResizer(Control control)
+    public static ResizeWidget GetOrCreateResizer(Control control, AdjustableStackPanel? parent = null)
     {
-        if (GetResizeWidget(control) is ResizeWidget widget)
+        if (GetResizeWidget(control) is { } widget)
         {
             return widget;
         }
 
-        ResizeWidget newResizer = new(); 
+        ResizeWidget newResizer = new();
+        if (parent is not null)
+        {
+            newResizer.BindProperties(AdjustableStackPanel.TransitionDurationProperty,
+                AdjustableStackPanel.TransitionEasingProperty, StackPanel.OrientationProperty, parent);
+        }
         ResizerControls.Add(newResizer, control);
         SetResizeWidget(control, newResizer);
 
@@ -157,7 +194,7 @@ public class ResizeWidget : TemplatedControl
     {
         if (e.Handled) return;
 
-        Size += e.ResizeAmount;
+        AnimatedSize += e.ResizeAmount;
         e.Handled = true;
     }
 

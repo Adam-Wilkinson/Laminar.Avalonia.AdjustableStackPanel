@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Layout;
@@ -34,33 +33,62 @@ public class RenderOffsetAnimator : Animatable
     private Easing _easing = new LinearEasing();
     private TimeSpan _duration = new();
 
+    private bool _transitionsBound = false;
+
+    private double _pendingSizeOffset = 0;
+    private double _pendingPositionOffset = 0;
+    
+    public void UnbindTransitionProperties()
+    {
+        if (!_transitionsBound) return;
+        
+        _durationObservable?.Dispose();
+        _easingObservable?.Dispose();
+        _sizeOffsetChangedObservable?.Dispose();
+        _positionOffsetChangedObservable?.Dispose();
+        _transitionsBound = false;
+    }
+    
     public void BindTransitionProperties(AvaloniaProperty<TimeSpan> durationProperty, AvaloniaProperty<Easing> easingProperty, Layoutable layoutableOwner)
     {
-        _durationObservable?.Dispose();
+        UnbindTransitionProperties();
+        
         _durationObservable = layoutableOwner.GetObservable(durationProperty).Subscribe(new AnonymousObserver<TimeSpan>(x =>
         {
             _duration = x;
             UpdateTransitions();
         }));
 
-        _easingObservable?.Dispose();
         _easingObservable = layoutableOwner.GetObservable(easingProperty).Subscribe(new AnonymousObserver<Easing>(x =>
         {
             _easing = x;
             UpdateTransitions();
         }));
-
-        _sizeOffsetChangedObservable?.Dispose();
-        _sizeOffsetChangedObservable = this.GetObservable(SizeOffsetProperty).Subscribe(new AnonymousObserver<double>(_ => layoutableOwner.InvalidateMeasure()));
-
-        _positionOffsetChangedObservable?.Dispose();
+        
         _positionOffsetChangedObservable = this.GetObservable(PositionOffsetProperty).Subscribe(new AnonymousObserver<double>(_ => layoutableOwner.InvalidateMeasure()));
 
         UpdateTransitions();
+        
+        _transitionsBound = true;
+        ExecutePending();
+    }
+
+    private void ExecutePending()
+    {
+        ChangePositionOffset(_pendingPositionOffset);
+        _pendingPositionOffset = 0;
+        ChangeSizeOffset(_pendingSizeOffset);
+        _pendingSizeOffset = 0;
     }
 
     public void ChangePositionOffset(double offsetChange)
     {
+        if (!_transitionsBound)
+        {
+            _pendingPositionOffset += offsetChange;
+            return;
+        }
+        
         Transitions ??= [];
         Transitions!.Remove(_positionTransition);
         PositionOffsetAfter += offsetChange;
@@ -70,6 +98,12 @@ public class RenderOffsetAnimator : Animatable
 
     public void ChangeSizeOffset(double sizeChange)
     {
+        if (!_transitionsBound)
+        {
+            _pendingSizeOffset += sizeChange;
+            return;
+        }
+        
         Transitions ??= [];
         Transitions!.Remove(_sizeTransition);
         SizeOffset += sizeChange;

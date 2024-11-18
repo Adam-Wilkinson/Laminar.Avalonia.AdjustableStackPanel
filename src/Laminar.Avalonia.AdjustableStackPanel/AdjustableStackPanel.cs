@@ -46,6 +46,7 @@ public class AdjustableStackPanel : StackPanel
 
     static AdjustableStackPanel()
     {
+        AffectsParentMeasure<AdjustableStackPanel>(ResizeWidget.AnimatedSizeProperty);
         ResizeWidget.ModeProperty.Changed.Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs<ResizerMode?>>(ResizeWidgetModeChanged));
     }
 
@@ -162,10 +163,10 @@ public class AdjustableStackPanel : StackPanel
             var resizerDepth = Orientation == Orientation.Horizontal ? currentResizer.DesiredSize.Width : currentResizer.DesiredSize.Height;
             var spaceAfterThisResizer = flags.HasFlag(ResizeFlags.CanMoveStackEnd) ?
                 double.PositiveInfinity :
-                _totalStackSize - currentDepth - currentResizer.Size - currentResizer.PositionOffset;
+                _totalStackSize - currentDepth - currentResizer.AnimatedSize - currentResizer.PositionOffset;
 
             var trueResizerControlDepth = Math.Min(resizerDepth, spaceAfterThisResizer);
-            var relativeStartOfResizer = currentResizer.Size - trueResizerControlDepth;
+            var relativeStartOfResizer = currentResizer.AnimatedSize - trueResizerControlDepth;
             child.Arrange(OrientedArrangeRect(currentDepth, Math.Max(relativeStartOfResizer, 0), finalSize));
             currentDepth += relativeStartOfResizer;
             currentResizer.Arrange(OrientedArrangeRect(currentDepth, Math.Max(trueResizerControlDepth, 0), finalSize));
@@ -204,7 +205,7 @@ public class AdjustableStackPanel : StackPanel
         for (int i = 0, count = Children.Count; i < count; ++i)
         {
             var child = Children[i];
-
+            
             if (!child.IsVisible)
             {
                 continue;
@@ -214,9 +215,8 @@ public class AdjustableStackPanel : StackPanel
             child.Measure(availableSize);
             resizer.Measure(availableSize);
 
-            if (double.IsNaN(resizer.Size))
+            if (double.IsNaN(resizer.AnimatedSize))
             {
-                resizer.SetSizeTo(0, false);
                 resizer.SetSizeTo(
                     IsInStretchMode() 
                         ? _totalStackSize / Math.Max(1, Children.Count - 1) 
@@ -224,10 +224,10 @@ public class AdjustableStackPanel : StackPanel
                     IsLoaded);
             }
 
-            measuredStackHeight += (IsInStretchMode() ? harness.GetMinimumSize(child) : resizer.Size) + resizer.PositionOffset;
+            measuredStackHeight += (IsInStretchMode() ? harness.GetMinimumSize(child) : resizer.AnimatedSize) + resizer.PositionOffset;
             maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, isHorizontal ? child.DesiredSize.Height : child.DesiredSize.Width);
 
-            totalStackSize += resizer.Size + resizer.PositionOffset;
+            totalStackSize += resizer.AnimatedSize + resizer.PositionOffset;
             resizeInfo.AddElement(child);
         }
 
@@ -274,11 +274,11 @@ public class AdjustableStackPanel : StackPanel
                 continue;
             }
 
-            var resizer = ResizeWidget.GetOrCreateResizer(addedControl);
+            var resizer = ResizeWidget.GetOrCreateResizer(addedControl, this);
+            resizer.BindProperties(TransitionDurationProperty, TransitionEasingProperty, OrientationProperty, this);
             LogicalChildren.Add(resizer);
             VisualChildren.Add(resizer);
-            resizer.BindProperties(TransitionDurationProperty, TransitionEasingProperty, OrientationProperty, this);
-            addedSize += double.IsNaN(resizer.Size) ? 0 : resizer.Size;
+            addedSize += double.IsNaN(resizer.AnimatedSize) ? 0 : resizer.AnimatedSize;
         }
 
         return addedSize;
@@ -297,7 +297,7 @@ public class AdjustableStackPanel : StackPanel
             }
 
             var resizer = ResizeWidget.GetOrCreateResizer(removedControl);
-            removedSize += resizer.Size;
+            removedSize += resizer.AnimatedSize;
             resizer.ModeAccessibleCheck = null;
             LogicalChildren.Remove(resizer);
             VisualChildren.Remove(resizer);

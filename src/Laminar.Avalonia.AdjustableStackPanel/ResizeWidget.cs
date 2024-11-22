@@ -40,7 +40,7 @@ public class ResizeWidget : TemplatedControl
     private ResizerMode? _mode;
     private Point? _lastClickPoint;
     private string? _currentModePseudoclass;
-    private bool _sizeChanging = false;
+    private bool _sizeChanging;
 
     public event EventHandler<ResizeEventArgs> Resize
     {
@@ -63,7 +63,7 @@ public class ResizeWidget : TemplatedControl
         Application.Current?.Resources.MergedDictionaries.Add(themes);
     }
 
-    public ResizeWidget()
+    private ResizeWidget()
     {
         Resize += OnResize;
         _offsetAnimator.GetPropertyChangedObservable(RenderOffsetAnimator.SizeOffsetProperty).Subscribe(
@@ -120,11 +120,18 @@ public class ResizeWidget : TemplatedControl
 
     private void TargetSizeChanged(AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.NewValue is not double newTargetSize || e.OldValue is not double oldTargetSize || _sizeChanging) return;
+        if (e.NewValue is not double newTargetSize || _sizeChanging) return;
         
-        Debug.WriteLine($"The target size has been changed, the animator is currently at {AnimatedSize}");
         _sizeChanging = true;
-        _offsetAnimator.ChangeSizeOffset((double.IsNaN(oldTargetSize) ? 0 : oldTargetSize) - newTargetSize);
+        var deltaSize = (e.OldValue is not double oldTargetSize || double.IsNaN(oldTargetSize) ? 0 : oldTargetSize) - newTargetSize;
+        if (deltaSize == 0)
+        {
+            AnimatedSize = newTargetSize;
+        }
+        else
+        {
+            _offsetAnimator.ChangeSizeOffset(deltaSize);
+        }
         _sizeChanging = false;
     }
     
@@ -179,13 +186,13 @@ public class ResizeWidget : TemplatedControl
         }
 
         ResizeWidget newResizer = new();
+        ResizerControls.Add(newResizer, control);
+        SetResizeWidget(control, newResizer);
         if (parent is not null)
         {
             newResizer.BindProperties(AdjustableStackPanel.TransitionDurationProperty,
                 AdjustableStackPanel.TransitionEasingProperty, StackPanel.OrientationProperty, parent);
         }
-        ResizerControls.Add(newResizer, control);
-        SetResizeWidget(control, newResizer);
 
         return newResizer;
     }

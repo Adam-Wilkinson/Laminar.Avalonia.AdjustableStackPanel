@@ -42,7 +42,7 @@ public class AdjustableStackPanel : StackPanel
     private bool _modeChanging = false;
     private bool _sizeChangeInvalidatesMeasure = true;
 
-    private readonly ResizeWidget _originalResizer = new();
+    private readonly ResizeWidget _originalResizer = ResizeWidget.GetOrCreateResizer(new Control());
 
     static AdjustableStackPanel()
     {

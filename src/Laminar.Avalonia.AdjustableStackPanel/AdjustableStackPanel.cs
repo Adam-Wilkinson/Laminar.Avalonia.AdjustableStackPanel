@@ -115,6 +115,12 @@ public class AdjustableStackPanel : StackPanel
             resizer.Mode = null;
         }
 
+        if (_lastChangedResizerIndex is null)
+        {
+            _modeChanging = false;
+            return;
+        }
+        
         foreach (var (currentResizerIndex, resize) in ResizeGesture
                      .GetGesture(_lastChangedResizer?.Mode, _resizerModifier)
                      .AccessibleResizes(Children, _lastChangedResizerIndex!.Value, CurrentStackResizeFlags()))

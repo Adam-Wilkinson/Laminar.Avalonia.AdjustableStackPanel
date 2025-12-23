@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -18,7 +18,7 @@
     <Version>1.1.0</Version>
     <PackageReleaseNotes>- Added a ResizerTargetSize attached property for data binding
 - Fixed bugs when two measure passes occur before an arrange pass</PackageReleaseNotes>
-    <LangVersion>12</LangVersion>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.1.4" />
+    <PackageReference Include="Avalonia" Version="11.3.10" />
   </ItemGroup>
 
 </Project>

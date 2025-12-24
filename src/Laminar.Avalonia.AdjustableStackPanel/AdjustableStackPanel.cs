@@ -154,8 +154,10 @@ public class AdjustableStackPanel : StackPanel
         {
             var originalResizerDepth = isHorizontal ? _originalResizer.DesiredSize.Width : _originalResizer.DesiredSize.Height;
             _originalResizer.Arrange(OrientedArrangeRect(currentDepth, originalResizerDepth, finalSize));
-            currentDepth += originalResizerDepth + _originalResizer.PositionOffset;
+            currentDepth += originalResizerDepth;
         }
+
+        currentDepth += _originalResizer.PositionOffset;
 
         for (int i = 0, count = Children.Count; i < count; i++)
         {

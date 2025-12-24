@@ -1,6 +1,6 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
-public readonly record struct ResizeElementInfo(double ResizableSpaceBefore, int DisabledElementsBefore);
+public readonly record struct ResizeElementInfo(double ResizableSpaceBefore, double MinimumSpaceBefore, int DisabledElementsBefore);
 
 public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IResizingHarness<T> harness)
 {
@@ -54,6 +54,8 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
 
     public readonly double TotalResizeSpace() => _resizeElementInfos[^1].ResizableSpaceBefore;
 
+    public readonly double TotalSpace() => _resizeElementInfos[^1].MinimumSpaceBefore + TotalResizeSpace();
+    
     public readonly bool IsValid() => ActiveResizerRequestedChange != 0 && _resizeElementCapacity > 0;
 
     public static ResizeInfo<T> Build(IEnumerable<T> elements, IResizingHarness<T> harness, Span<ResizeElementInfo> resizeElementInfos)
@@ -77,6 +79,7 @@ public ref struct ResizeInfo<T>(Span<ResizeElementInfo> resizeElementInfos, IRes
         _resizeElementInfos[_resizeElementCount] = new()
         {
             ResizableSpaceBefore = (_resizeElementCount == 0 ? 0 : _resizeElementInfos[_resizeElementCount - 1].ResizableSpaceBefore) + (Harness.IsEnabled(resizable) ? Harness.GetResizableSpace(resizable) : 0),
+            MinimumSpaceBefore = (_resizeElementCount == 0 ? 0 : _resizeElementInfos[_resizeElementCount - 1].MinimumSpaceBefore) + (Harness.IsEnabled(resizable) ? Harness.GetMinimumSize(resizable) : 0),
             DisabledElementsBefore = _disabledElementCount,
         };
 

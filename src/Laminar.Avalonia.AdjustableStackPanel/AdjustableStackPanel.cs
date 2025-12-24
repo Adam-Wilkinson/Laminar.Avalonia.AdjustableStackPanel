@@ -58,6 +58,7 @@ public class AdjustableStackPanel : StackPanel
         _sizeChangeInvalidatesMeasure = false;
         e.Handled = true;
         _currentResizeAmount = e.ResizeAmount;
+        // Debug.WriteLine($"Resize event triggered");
         InvalidateMeasure();
     }
 
@@ -140,12 +141,17 @@ public class AdjustableStackPanel : StackPanel
         var isHorizontal = Orientation == Orientation.Horizontal;
         _originalResizer.IsVisible = flags.HasFlag(ResizeFlags.CanMoveStackStart);
 
-        
-        if (IsInStretchMode() && Children.Count > 0)
+        var freeSpace = (isHorizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
+        if (IsInStretchMode() && Children.Count > 0 && Math.Abs(freeSpace) > 0.01)
         {
+            // Debug.WriteLine($"Total space is {freeSpace + _totalStackSize}");
             var resizeInfo = ResizeInfo<Control>.Build(Children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[Children.Count]);
-            var freeSpace = (isHorizontal ? finalSize.Width : finalSize.Height) - _totalStackSize;
-            _totalStackSize += new Scale().Run(resizeInfo.GetElementsAfter(-1, Children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
+            // Debug.WriteLine($"My knowledge of total stack size is {_totalStackSize}, but resizeInfo measured it as {resizeInfo.TotalSpace()}");
+            // Debug.WriteLine($"I have {freeSpace} free space, with a total stack size of {_totalStackSize}");
+            var measuredFreeSpace = (isHorizontal ? finalSize.Width : finalSize.Height) - resizeInfo.TotalSpace();
+            var sizeChange = new Scale().Run(resizeInfo.GetElementsAfter(-1, Children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
+            // Debug.WriteLine($"A requested scale by {freeSpace} resulted in a size change of {sizeChange}");
+            // _totalStackSize += sizeChange;
         }
 
         double currentDepth = 0;
@@ -185,6 +191,7 @@ public class AdjustableStackPanel : StackPanel
         
         _sizeChangeInvalidatesMeasure = true;
         _totalStackSize = currentDepth;
+        // Debug.WriteLine($"Total stack size after measuring things is {_totalStackSize}");
         return finalSize;
     }
 

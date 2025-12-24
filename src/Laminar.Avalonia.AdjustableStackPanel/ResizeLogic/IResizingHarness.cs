@@ -9,6 +9,8 @@ public interface IResizingHarness<in T>
     public double GetTargetSize(T resizable);
 
     public void SetSize(T resizable, double size);
+
+    public void ChangeSize(T resizable, double changeInSize);
 }
 
 public static class ResizingHarnessExtensions
@@ -18,11 +20,6 @@ public static class ResizingHarnessExtensions
         public double GetResizableSpace(T resizable)
         {
             return resizingHarness.GetTargetSize(resizable) - resizingHarness.GetMinimumSize(resizable);
-        }
-
-        public void ChangeSize(T resizable, double changeInSize)
-        {
-            resizingHarness.SetSize(resizable, resizingHarness.GetTargetSize(resizable) + changeInSize);
         }
 
         public double TryResize(T resizable, double changeInSize)

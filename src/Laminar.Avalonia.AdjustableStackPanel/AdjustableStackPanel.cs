@@ -146,12 +146,10 @@ public class AdjustableStackPanel : StackPanel
         {
             // Debug.WriteLine($"Total space is {freeSpace + _totalStackSize}");
             var resizeInfo = ResizeInfo<Control>.Build(Children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[Children.Count]);
-            // Debug.WriteLine($"My knowledge of total stack size is {_totalStackSize}, but resizeInfo measured it as {resizeInfo.TotalSpace()}");
             // Debug.WriteLine($"I have {freeSpace} free space, with a total stack size of {_totalStackSize}");
-            var measuredFreeSpace = (isHorizontal ? finalSize.Width : finalSize.Height) - resizeInfo.TotalSpace();
             var sizeChange = new Scale().Run(resizeInfo.GetElementsAfter(-1, Children), resizeInfo.Harness, freeSpace, resizeInfo.TotalResizeSpace());
             // Debug.WriteLine($"A requested scale by {freeSpace} resulted in a size change of {sizeChange}");
-            // _totalStackSize += sizeChange;
+            _totalStackSize += sizeChange;
         }
 
         double currentDepth = 0;
@@ -190,7 +188,7 @@ public class AdjustableStackPanel : StackPanel
         }
         
         _sizeChangeInvalidatesMeasure = true;
-        _totalStackSize = currentDepth;
+        // _totalStackSize = currentDepth;
         // Debug.WriteLine($"Total stack size after measuring things is {_totalStackSize}");
         return finalSize;
     }
@@ -234,6 +232,7 @@ public class AdjustableStackPanel : StackPanel
 
             if (double.IsNaN(resizer.AnimatedSize))
             {
+                // Debug.WriteLine($"Found an ill-defined resizer! Stretch mode: {IsInStretchMode()}, and the stretch size is {_totalStackSize / Math.Max(1, Children.Count - 1) } and my loaded property is {IsLoaded}");
                 resizer.SetSizeTo(
                     IsInStretchMode() 
                         ? _totalStackSize / Math.Max(1, Children.Count - 1) 
@@ -245,6 +244,7 @@ public class AdjustableStackPanel : StackPanel
             maximumStackDesiredWidth = Math.Max(maximumStackDesiredWidth, isHorizontal ? child.DesiredSize.Height : child.DesiredSize.Width);
 
             totalStackSize += resizer.AnimatedSize + resizer.PositionOffset;
+            // Debug.WriteLine($"Total stack size has had the resizer animated size ({resizer.AnimatedSize}) and the resizer position offset ({resizer.PositionOffset}) added.");
             resizeInfo.AddElement(child);
         }
 

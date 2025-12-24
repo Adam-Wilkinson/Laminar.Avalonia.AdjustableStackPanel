@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.Diagnostics;
+using Avalonia.Controls;
 using Avalonia.Layout;
 using Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
@@ -36,4 +37,24 @@ internal class ControlResizingHarness : IResizingHarness<Control>
 
     public void SetSize(Control resizable, double size)
         => ResizeWidget.GetOrCreateResizer(resizable).SetSizeTo(size, Animated);
+
+    public void ChangeSize(Control resizable, double changeInSize)
+    {
+        var resizer = ResizeWidget.GetOrCreateResizer(resizable);
+        // Debug.WriteLine($"A size change is happening by {changeInSize}. This control has animated size {ResizeWidget.GetAnimatedSize(resizable)} and target size {ResizeWidget.GetTargetSize(resizable)}");
+        if (Animated)
+        {
+            resizer.SetSizeTo(resizer.TargetSize + changeInSize, true);
+        }
+        else if (Math.Abs(resizer.TargetSize - resizer.AnimatedSize) < double.Epsilon)
+        {
+            resizer.SetSizeTo(resizer.TargetSize + changeInSize, false);
+        }
+        else
+        {
+            var oldTargetSize = resizer.TargetSize;
+            ResizeWidget.SetAnimatedSize(resizable, ResizeWidget.GetAnimatedSize(resizable) + changeInSize);
+            ResizeWidget.SetTargetSize(resizable, oldTargetSize + changeInSize);
+        }
+    }
 }

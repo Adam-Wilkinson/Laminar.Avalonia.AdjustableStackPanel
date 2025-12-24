@@ -221,6 +221,11 @@ public class ResizeWidget : TemplatedControl
 
     protected override void OnPointerExited(PointerEventArgs e)
     {
+        if (Equals(e.Pointer.Captured, this))
+        {
+            return;
+        }
+        
         HideAccessibleModes();
         Mode = null;
         base.OnPointerExited(e);
@@ -229,6 +234,7 @@ public class ResizeWidget : TemplatedControl
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         _lastClickPoint = e.GetPosition(this);
+        e.Pointer.Capture(this);
         e.Handled = true;
     }
 
@@ -253,6 +259,7 @@ public class ResizeWidget : TemplatedControl
 
         _lastClickPoint = null;
         e.Handled = true;
+        e.Pointer.Capture(null);
     }
 
     private void RegisterModeSwitchOnChildHover(TemplateAppliedEventArgs e, string childName, ResizerMode mode)

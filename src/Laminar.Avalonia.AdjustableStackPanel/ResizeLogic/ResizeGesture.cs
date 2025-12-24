@@ -25,7 +25,7 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
     public static readonly ResizeAmountTransformation MaintainResizeAmount = (x, _, _, _) => x;
     public static readonly ResizeAmountTransformation NegateResizeAmount = (x, _, _, _) => -x;
 
-    private static Dictionary<(ResizerMode mode, ResizerModifier modifier), ResizeGesture> GestureDictionary = [];
+    private static Dictionary<(ResizerMode mode, ResizerModifier modifier), ResizeGesture> _gestureDictionary = [];
 
     private static readonly ResizeGesture EmptyGesture = new([], new(new NoneResizeMethod(), new NoneResizeMethod(), "", "", (int _, int _, ResizeFlags flags) => false), ResizerModifier.None);
 
@@ -142,15 +142,15 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
 
     public static void SetGestures(ResizeGesture[] gestures)
     {
-        GestureDictionary = [];
+        _gestureDictionary = [];
         foreach (ResizeGesture resizeGesture in gestures)
         {
-            GestureDictionary.Add((resizeGesture.Mode, resizeGesture.Modifier), resizeGesture);
+            _gestureDictionary.Add((resizeGesture.Mode, resizeGesture.Modifier), resizeGesture);
         }
     }
 
     public static bool TryGetGesture(ResizerMode mode, ResizerModifier? modifier, out ResizeGesture gesture)
-        => GestureDictionary.TryGetValue((mode, modifier ?? ResizerModifier.None), out gesture);
+        => _gestureDictionary.TryGetValue((mode, modifier ?? ResizerModifier.None), out gesture);
 
     public static ResizeGesture GetGesture(ResizerMode? mode, ResizerModifier? modifier)
     {
@@ -182,7 +182,7 @@ public readonly record struct ResizeGesture(ResizerMovement[] Resizes, ResizerMo
         }
     }
 
-    public readonly double Execute<T>(IList<T> resizeElements, ResizeInfo<T> resizeInfo)
+    public double Execute<T>(IList<T> resizeElements, ResizeInfo<T> resizeInfo)
     {
         double changeInStackSize = 0;
         resizeInfo.Flags |= Flags;

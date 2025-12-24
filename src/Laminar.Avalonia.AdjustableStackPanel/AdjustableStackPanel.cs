@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -28,18 +29,18 @@ public class AdjustableStackPanel : StackPanel
         set => SetValue(TransitionEasingProperty, value);
     }
 
-    public readonly Dictionary<KeyModifiers, ResizerModifier> ResizerModifierKeys = new()
+    public Dictionary<KeyModifiers, ResizerModifier> ResizerModifierKeys { get; } = new()
     {
         { KeyModifiers.Control, ResizerModifier.Move },
         { KeyModifiers.Shift, ResizerModifier.ShrinkGrow },
     };
 
-    private double _totalStackSize = 0;
-    private int? _lastChangedResizerIndex = null;
-    private double? _currentResizeAmount = null;
-    private ResizeWidget? _lastChangedResizer = null;
+    private double _totalStackSize;
+    private int? _lastChangedResizerIndex;
+    private double? _currentResizeAmount;
+    private ResizeWidget? _lastChangedResizer;
     private ResizerModifier _resizerModifier = ResizerModifier.None;
-    private bool _modeChanging = false;
+    private bool _modeChanging;
     private bool _sizeChangeInvalidatesMeasure = true;
 
     private readonly ResizeWidget _originalResizer = ResizeWidget.GetOrCreateResizer(new Control());
@@ -139,6 +140,7 @@ public class AdjustableStackPanel : StackPanel
         var isHorizontal = Orientation == Orientation.Horizontal;
         _originalResizer.IsVisible = flags.HasFlag(ResizeFlags.CanMoveStackStart);
 
+        
         if (IsInStretchMode() && Children.Count > 0)
         {
             var resizeInfo = ResizeInfo<Control>.Build(Children, ControlResizingHarness.GetHarness(Orientation), stackalloc ResizeElementInfo[Children.Count]);
@@ -198,7 +200,7 @@ public class AdjustableStackPanel : StackPanel
             ActiveResizerIndex = _lastChangedResizerIndex.GetValueOrDefault(),
             Flags = CurrentStackResizeFlags(),
         };
-
+        
         if (CurrentStackResizeFlags().HasFlag(ResizeFlags.CanMoveStackStart))
         {
             _originalResizer.Measure(availableSize);
@@ -246,6 +248,7 @@ public class AdjustableStackPanel : StackPanel
             totalStackSize += stackHeightChange;
         }
 
+        
         _currentResizeAmount = null;
         _totalStackSize = totalStackSize;
         return isHorizontal ? new Size(measuredStackHeight, maximumStackDesiredWidth) : new Size(maximumStackDesiredWidth, measuredStackHeight);

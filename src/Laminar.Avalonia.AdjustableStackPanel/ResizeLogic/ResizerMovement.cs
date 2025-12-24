@@ -4,7 +4,7 @@ namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
 public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTransformation ResizeAmountTransformation, ResizerMode ResizerMode)
 {
-    public readonly bool IsValid<T>(IList<T> resizeElements, int indexOfCurrentResizer, ResizeInfo<T> resizeInfo)
+    public bool IsValid<T>(IList<T> resizeElements, int indexOfCurrentResizer, ResizeInfo<T> resizeInfo)
     {
         if (!resizeInfo.Flags.HasFlag(ResizeFlags.CanMoveStackStart) && resizeInfo.GetElementsBefore(indexOfCurrentResizer, resizeElements).Length <= 0) { return false; }
 
@@ -22,7 +22,7 @@ public readonly record struct ResizerMovement(int IndexOffset, ResizeAmountTrans
         }
     }
 
-    public readonly double Execute<T>(IList<T> resizeElements, int indexOfCurrentResizer, ResizeInfo<T> resizeInfo)
+    public double Execute<T>(IList<T> resizeElements, int indexOfCurrentResizer, ResizeInfo<T> resizeInfo)
     {
         double requestedResizerPositionChange = TransformResize(resizeInfo, indexOfCurrentResizer);
         double actualResizerPositionChange = 0;

@@ -1,6 +1,6 @@
 ﻿namespace Laminar.Avalonia.AdjustableStackPanel.ResizeLogic;
 
-public interface IResizingHarness<T>
+public interface IResizingHarness<in T>
 {
     public bool IsEnabled(T resizable);
 
@@ -13,22 +13,25 @@ public interface IResizingHarness<T>
 
 public static class ResizingHarnessExtensions
 {
-    public static double GetResizableSpace<T>(this IResizingHarness<T> resizingHarness, T resizable)
+    extension<T>(IResizingHarness<T> resizingHarness)
     {
-        return resizingHarness.GetTargetSize(resizable) - resizingHarness.GetMinimumSize(resizable);
-    }
+        public double GetResizableSpace(T resizable)
+        {
+            return resizingHarness.GetTargetSize(resizable) - resizingHarness.GetMinimumSize(resizable);
+        }
 
-    public static void ChangeSize<T>(this IResizingHarness<T> resizingHarness, T resizable, double changeInSize)
-    {
-        resizingHarness.SetSize(resizable, resizingHarness.GetTargetSize(resizable) + changeInSize);
-    }
+        public void ChangeSize(T resizable, double changeInSize)
+        {
+            resizingHarness.SetSize(resizable, resizingHarness.GetTargetSize(resizable) + changeInSize);
+        }
 
-    public static double TryResize<T>(this IResizingHarness<T> resizingHarness, T resizable, double changeInSize)
-    {
-        double originalSize = resizingHarness.GetTargetSize(resizable);
-        double minimumSize = resizingHarness.GetMinimumSize(resizable);
-        double newSize = Math.Max(minimumSize, originalSize + changeInSize);
-        resizingHarness.SetSize(resizable, newSize);
-        return newSize - originalSize;
+        public double TryResize(T resizable, double changeInSize)
+        {
+            var originalSize = resizingHarness.GetTargetSize(resizable);
+            var minimumSize = resizingHarness.GetMinimumSize(resizable);
+            var newSize = Math.Max(minimumSize, originalSize + changeInSize);
+            resizingHarness.SetSize(resizable, newSize);
+            return newSize - originalSize;
+        }
     }
 }
